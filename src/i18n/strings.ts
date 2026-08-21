@@ -95,6 +95,7 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   "New Round": "New Round",
   Retry: "Retry",
   Status: "Status",
+  Balance: "Balance",
   Stake: "Stake",
   Date: "Date",
   About: "About",

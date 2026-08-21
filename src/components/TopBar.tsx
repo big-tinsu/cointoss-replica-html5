@@ -34,7 +34,7 @@ export function TopBar({
       {/* `Bal Panel` — frame mobile-1. */}
       <Spr src={ui("bal-panel")} rect={NAV.balPanel} />
       <Tmp rect={NAV.balLabel} fontSize={NAV.balLabel.fs} color={C.balanceAmber} align="left">
-        {t("Status")}
+        {t("Balance")}
       </Tmp>
       <Tmp rect={NAV.currency} fontSize={NAV.currency.fs} color={C.white} align="left">
         {currency}
