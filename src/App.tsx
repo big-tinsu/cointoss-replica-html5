@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useGameSession } from "./state/useGameSession";
-import { useResponsiveLayout } from "./hooks/useResponsiveLayout";
 import { useLanguage } from "./i18n/LanguageContext";
 import { getLaunchParams } from "./api/urlParams";
+import { Stage } from "./ui/Stage";
+import { ui } from "./ui/design";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { ErrorScreen } from "./components/ErrorScreen";
 import { TopBar } from "./components/TopBar";
@@ -25,12 +26,21 @@ function computeAnim(busy: boolean, isFlipping: boolean, flipOutcome: string | n
   return "idle";
 }
 
+/**
+ * The `Canvas` root, in its z-order (see `hierarchy` in the extraction):
+ * `background` (frame mobile-19, full-bleed) is drawn first, then
+ * `Game Panel` (NavPanel/Ticker/GameView/BetPanel/ResultsPanel/
+ * CashoutRetry/MenuPanel — all the live gameplay chrome), then the
+ * top-level overlays (`Bet History`, `About`/Help, `PortraitOrientation
+ * Warning`) each of which is a full-screen sibling of `Game Panel`, not
+ * nested inside it.
+ */
 export default function App() {
   const { state, actions } = useGameSession();
   const { boot: bootLanguage } = useLanguage();
-  const { isPortrait } = useResponsiveLayout();
-  const [betHistoryVisible, setBetHistoryVisible] = useState(false);
+
   const [menuVisible, setMenuVisible] = useState(false);
+  const [betHistoryVisible, setBetHistoryVisible] = useState(false);
 
   useEffect(() => {
     const { language } = getLaunchParams();
@@ -40,81 +50,100 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (state.phase === "booting") return <LoadingScreen />;
-  if (state.phase === "fatal-error") return <ErrorScreen message={state.fatalError ?? ""} />;
-
   const showBetPanel = !state.hasMadeABet && !state.resultsVisible;
 
   return (
     <CustomizationProvider customData={state.customization}>
-      <div className={`game-shell ${isPortrait ? "layout-portrait" : "layout-landscape"}`}>
-        <TopBar
-          currency={state.currency}
-          balance={state.balance}
-          onHelp={actions.toggleHelp}
-          onMenu={() => setMenuVisible(true)}
-          onBetHistory={() => {
-            setBetHistoryVisible(true);
-            actions.refreshBetHistory(1);
-          }}
+      <Stage>
+        {/* z 1 — `background`: frame mobile-19 stretched to the full
+         * 1080x2340 canvas rect. This illustrated altar scene is the
+         * design's ground; there is no gradient anywhere in the scene. */}
+        <img
+          className="spr stage-backdrop"
+          src={ui("backdrop")}
+          alt=""
+          width={1080}
+          height={2340}
+          style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 2340 }}
+          decoding="sync"
+          loading="eager"
         />
 
-        <Ticker currency={state.currency} />
+        {state.phase === "booting" && <LoadingScreen />}
+        {state.phase === "fatal-error" && <ErrorScreen message={state.fatalError ?? ""} />}
 
-        <main className="game-main">
-          <CoinStage anim={computeAnim(state.busy, state.isFlipping, state.flipOutcome)} />
+        {state.phase === "ready" && (
+          <>
+            {/* z 2 — `Game Panel`. */}
+            <TopBar currency={state.currency} balance={state.balance} onMenu={() => setMenuVisible(true)} />
+            <Ticker currency={state.currency} />
 
-          {showBetPanel && (
-            <BetPanel
+            <CoinStage anim={computeAnim(state.busy, state.isFlipping, state.flipOutcome)} />
+
+            {showBetPanel && (
+              <BetPanel
+                currency={state.currency}
+                minimum={state.minimum}
+                maximum={state.maximum}
+                stake={state.stake}
+                stakeText={state.stakeText}
+                quickBetValues={state.quickBetValues}
+                busy={state.busy}
+                onStakeText={actions.setStakeText}
+                onCommitStake={actions.commitStake}
+                onAddChip={actions.addChip}
+                onChoose={actions.chooseAndBet}
+              />
+            )}
+
+            <ResultsPanel
+              visible={state.resultsVisible}
+              result={state.lastResult}
               currency={state.currency}
-              minimum={state.minimum}
-              maximum={state.maximum}
-              stake={state.stake}
-              stakeText={state.stakeText}
-              quickBetValues={state.quickBetValues}
-              busy={state.busy}
-              isMobileLayout={isPortrait}
-              onStakeText={actions.setStakeText}
-              onCommitStake={actions.commitStake}
-              onAddChip={actions.addChip}
-              onChoose={actions.chooseAndBet}
+              onRebet={actions.rebet}
+              onNewRound={actions.newRound}
             />
-          )}
-        </main>
 
-        <NotificationToast notification={state.notification} />
+            <CashoutRetryModal
+              visible={state.cashoutRetryVisible}
+              message={state.cashoutRetryMessage}
+              onRetry={actions.retryReAuthenticate}
+            />
 
-        <ResultsPanel
-          visible={state.resultsVisible}
-          result={state.lastResult}
-          currency={state.currency}
-          onRebet={actions.rebet}
-          onNewRound={actions.newRound}
-        />
+            <InsufficientFundsModal
+              visible={state.insufficientFundsVisible}
+              onClose={actions.dismissInsufficientFunds}
+            />
 
-        <InsufficientFundsModal
-          visible={state.insufficientFundsVisible}
-          onClose={actions.dismissInsufficientFunds}
-        />
-        <CashoutRetryModal
-          visible={state.cashoutRetryVisible}
-          message={state.cashoutRetryMessage}
-          onRetry={actions.retryReAuthenticate}
-        />
-        <HelpModal visible={state.helpVisible} oddsOne={state.oddsOne} onClose={actions.toggleHelp} />
-        <MenuPanel visible={menuVisible} onClose={() => setMenuVisible(false)} />
-        <BetHistoryPanel
-          visible={betHistoryVisible}
-          history={state.betHistory}
-          pagination={state.betHistoryPagination}
-          loading={state.betHistoryLoading}
-          currency={state.currency}
-          onClose={() => setBetHistoryVisible(false)}
-          onPageChange={actions.refreshBetHistory}
-        />
+            <NotificationToast notification={state.notification} />
 
-        <OrientationOverlay />
-      </div>
+            <MenuPanel
+              visible={menuVisible}
+              onClose={() => setMenuVisible(false)}
+              onHelp={actions.toggleHelp}
+              onBetHistory={() => {
+                setBetHistoryVisible(true);
+                actions.refreshBetHistory(1);
+              }}
+            />
+
+            {/* z 3-6 — top-level Canvas siblings of `Game Panel`. */}
+            <BetHistoryPanel
+              visible={betHistoryVisible}
+              history={state.betHistory}
+              pagination={state.betHistoryPagination}
+              loading={state.betHistoryLoading}
+              currency={state.currency}
+              onClose={() => setBetHistoryVisible(false)}
+              onPageChange={actions.refreshBetHistory}
+            />
+
+            <HelpModal visible={state.helpVisible} oddsOne={state.oddsOne} onClose={actions.toggleHelp} />
+
+            <OrientationOverlay />
+          </>
+        )}
+      </Stage>
     </CustomizationProvider>
   );
 }

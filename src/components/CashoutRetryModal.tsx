@@ -1,8 +1,12 @@
 import { useLanguage } from "../i18n/LanguageContext";
+import { playClick } from "../state/sfx";
+import { C, CASHOUT_RETRY, R } from "../ui/design";
+import { Tmp } from "../ui/Sprite";
 
-/** `cashoutRetryPanel`/`GameManager.RetryCashout` (`GameManager.cs:528-572`)
- * — shown when a post-round re-authenticate call fails to reach the server;
- * the panel's message text is whatever the failed call's error was. */
+/** `Cashout Retry`/`GameManager.RetryCashout` (`GameManager.cs:528-572`) —
+ * shown when a post-round re-authenticate call fails to reach the server;
+ * the button is literally named `Rebet` in the scene but its TMP text reads
+ * "Retry". */
 export function CashoutRetryModal({
   visible,
   message,
@@ -15,13 +19,31 @@ export function CashoutRetryModal({
   const { t } = useLanguage();
   if (!visible) return null;
   return (
-    <div className="modal-backdrop">
-      <div className="modal-panel">
-        <p>{t(message)}</p>
-        <button type="button" className="primary-button" onClick={onRetry}>
+    <div className="modal-fade">
+      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: "rgba(2, 8, 14, 0.7)" }} />
+      <Tmp rect={CASHOUT_RETRY.message} fontSize={CASHOUT_RETRY.message.fs} color={C.white}>
+        {t(message)}
+      </Tmp>
+      <button
+        type="button"
+        className="btn press"
+        style={{
+          left: CASHOUT_RETRY.button.x,
+          top: CASHOUT_RETRY.button.y,
+          width: CASHOUT_RETRY.button.w,
+          height: CASHOUT_RETRY.button.h,
+          background: C.retryTeal,
+          borderRadius: R.retryButton,
+        }}
+        onClick={() => {
+          playClick();
+          onRetry();
+        }}
+      >
+        <Tmp rect={{ x: 0, y: 0, w: CASHOUT_RETRY.button.w, h: CASHOUT_RETRY.button.h }} fontSize={CASHOUT_RETRY.button.fs} color={C.white}>
           {t("Retry")}
-        </button>
-      </div>
+        </Tmp>
+      </button>
     </div>
   );
 }

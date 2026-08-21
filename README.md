@@ -61,23 +61,10 @@ including the server-authoritative three-outcome RNG.
 | `Crypto.cs` — AES-128-CBC, uppercase hex | `src/api/crypto.ts` (Web Crypto SubtleCrypto), `server/crypto.js` (Node `crypto`, byte-identical) |
 | `LanguageManager.cs` | `src/i18n/strings.ts` (the ~95-key default table) + `src/i18n/LanguageContext.tsx` + `src/i18n/languageClient.ts` |
 | `Customizable.cs`/`ColorOption.cs` — partner theming | `src/components/Customizable.tsx` (`CustomizationProvider`, `useCustomColor`, `useCustomToggle`, `CustomizableText`, `useAlternatingColor`) |
-| `DynamicUiManager.cs` — Desktop/Mobile scene distinction | `src/hooks/useResponsiveLayout.ts` + `.layout-portrait`/`.layout-landscape` CSS (one component tree, no scene reload) |
+| `DynamicUiManager.cs` — the `Responsive` node's live-resize script | Superseded by the design-space `Stage` — see "Visual fidelity" below |
 | `GameManager.DisplayOrientationMessage`/orientation prefabs — **the one real orientation overlay of the three sibling games** | `src/hooks/useOrientationGuard.ts` + `src/components/OrientationOverlay.tsx` (reactive `matchMedia`, not a polling loop) |
 | `Assets/Animations/Game/{head,tail,side,load,idle}.anim` | `data-anim` attribute + the identically-named CSS `@keyframes` in `src/components/CoinStage.tsx`/`index.css` |
 | `PlayConfetti.cs` (dormant) | `src/components/ConfettiBurst.tsx` — small CSS celebration, see below |
-
-### Layout fidelity
-
-`DynamicUiManager` in the Unity source ships two full static scenes
-(`Desktop.unity`/`Mobile.unity`), but the actual scene-swap machinery has
-zero call sites anywhere (confirmed dead code, spec §5) — the two scenes are
-never live-swapped by Unity itself either. Per the spec's explicit
-recommendation, this port builds ONE responsive component tree with CSS
-breakpoints reacting live to viewport shape (`useResponsiveLayout`), not two
-divergent trees. Same for bet history: one `BetHistoryPanel` component whose
-desktop-table vs. mobile-cards presentation is chosen purely by a CSS media
-query over the same DOM (matching Keno's architecture, not Penaldo's two
-parallel implementations).
 
 ## Backend contract
 
@@ -288,14 +275,149 @@ device" message on mismatch, using the exact localized copy from the source.
 Copied from `cointoss-aggregator-v2026/Assets` into `public/` (`.meta`,
 `.DS_Store`, and `~`-suffixed/`.kra` Krita source/backup files skipped):
 
+- `assets/ui/` — the 13 real sliced comp frames actually referenced by the
+  scene (`Interface Design - Coin & Toss - mobile - {1,4,6,7,8,10,11,12,13,
+  14,15,16,19}.png`), renamed descriptively (`logo`, `bal-panel`, `chip`,
+  `heads-button`, `tails-button`, `backdrop`, …) — see "Visual fidelity".
 - `assets/img/` — coin faces (`heads.png`/`tails.png`/`side.png`), background
-  art, UI chrome, mute/unmute icons, `win-art.png`, the brand banner.
+  art, UI chrome, mute/unmute icons, `win-art.png`, the brand banner, the
+  keypad's `round-edge-sprite.png`/`point.png`, and the orientation-overlay
+  `icons8-rotate-phone-64.png`.
 - `assets/handtoss/` — the 5-frame hand/coin-toss gesture sequence.
 - `assets/sound/button-click.wav` — see "Sound" above.
 - `fonts/Bestime.ttf` — see "Font" above.
 - `reference/` — the 22 real "Interface Design - Coin & Toss" mockup
   PNGs/JPGs (1 desktop + 19 mobile comps + 2 reference photos), copied
   verbatim as designer reference, not runtime assets the app loads.
+
+## Visual fidelity
+
+The presentation layer was rebuilt from scratch against
+`/Users/jimi/codes/unity-ui-extract/out/cointoss.json` (311 nodes from the
+Coin Toss `Canvas` scene, 10/10 self-check passed), reusing the sibling
+Penaldo port's architecture directly rather than reinventing it.
+
+### Design-space stage, not CSS breakpoints
+
+The previous build here used one CSS-breakpoint component tree
+(`useResponsiveLayout` + `.layout-portrait`/`.layout-landscape`). This pass
+replaces that entirely with `src/ui/Stage.tsx`: a fixed `1080x2340` div
+(the scene's `CanvasScaler.referenceResolution`), `transform: scale(var(--s))`
+with `--s = sqrt((vw/1080) * (vh/2340))`, recomputed by one `resize`/
+`orientationchange` listener coalesced onto a single `requestAnimationFrame`
+— never a React re-render. Every descendant is `position: absolute` at the
+raw `rect_css` pixels from `src/ui/design.ts` (a hand-transcribed, commented
+subset of the extraction, every constant citing its source node name), the
+same pattern as Penaldo's `ui/design.ts`/`ui/Stage.tsx`/`ui/Sprite.tsx`.
+
+This scene's own `CanvasScaler` is actually configured differently from the
+sibling games': `m_MatchWidthOrHeight: 1` (full match-height — canvas width
+elastically follows device aspect) rather than the `0.5` geometric-mean
+split Penaldo/Keno use. This port deliberately keeps the shared `sqrt(...)`
+convention anyway, to stay architecturally identical across the family
+(same `Stage`, same `rect_css` contract) — documented as a conscious
+divergence in `Stage.tsx`, not an oversight. At the primary 1080-wide
+portrait target the two are pixel-identical; the difference only shows on
+very wide/landscape viewports, where a literal Unity relaunch would reveal
+more of the design's horizontal bleed and this port instead clips it at the
+stage's own 1080px edge.
+
+### The `Interactive Pane` bleed, and the one recentring correction
+
+`Interactive Pane` (and everything under it — `BetPanel`, `ResultsPanel`,
+`Cashout Retry`) is a *stretch* child of the scene's `Game Panel`, which is
+itself only a `100x100` positioning anchor, not the real Canvas. Working
+through Unity's own stretch-rect algebra, this makes the whole subtree
+**always** 1360.8px wide regardless of any live-resize logic, with the
+`-216`/`+64.8` split baked into the static scene file being just one
+snapshot of wherever `DynamicUiManager` (attached to the neighbouring
+`Responsive` node) happens to leave `Game Panel`'s width at runtime — a
+value this UI-only extraction can't recover. Trusting that snapshot
+literally clipped the left-most quick-bet chip (`+200`) off the visible
+canvas. This port makes the one defensible call instead: split the
+unavoidable 280.8px overflow evenly (140.4px each side) rather than
+reproducing the file's asymmetric split. That's a single `+75.6px`
+correction (`IP_X` in `design.ts`), applied once to every rect descending
+from `Interactive Pane`'s coordinate space so the stake field, chips,
+choice buttons, results panel and cashout-retry modal all stay mutually
+aligned. Everything else in `design.ts` is the literal extracted value.
+
+### Art-to-element mapping
+
+The 13 sliced comp frames actually wired into the scene live in
+`public/assets/ui/*.png` under descriptive names — see the `ui()` helper's
+call sites in `src/components/*.tsx` for the full mapping back to
+`Interface Design - Coin & Toss - mobile - N.png`. Highlights:
+
+- `background` (frame 19) is the full-bleed illustrated altar backdrop —
+  drawn 1:1 as the stage's first child, no gradient anywhere in the scene.
+- `NavPanel` has exactly one interactive icon button (`MenuButton`, frame 6
+  + the frame-7 hamburger glyph) — no separate Help/Bet-History icons in the
+  top bar. Both of those now live inside `MenuPanel`'s three-row drawer
+  (`About Button`→Help, `BetHistoryButton`, `unmute`/`mute`→a local Sound
+  toggle wired to `state/sfx.ts`), matching the scene instead of the
+  previous build's three invented top-bar icons.
+- `ChoicePanel/Heads`+`Tails` (frames 15/16) are full glowing pill buttons,
+  not a card-flip pair of plain rectangles — each carries its own "Pays 2x"
+  label above the "HEAD"/"TAIL" text, both baked into `design.ts`'s `CHOICE`
+  constant.
+- `Game Panel/Game View` is a `RawImage` of a real render texture
+  (`GameView.renderTexture`) framing a 3D `Coin` mesh with an `Animator`
+  (`Coin.controller`, states `idle`/`load`/`head`/`tail`/`side`) — reproduced
+  as `CoinStage.tsx`'s CSS 3D flip-card at the exact `Game View` rect
+  (140, 548.664, 800x800), not a smaller ad-hoc circle.
+- Every 9-slice corner radius is computed as `108 / pixelsPerUnitMultiplier`
+  per element (`R` in `design.ts`), covering the multipliers actually
+  present in this scene (1, 2, 3, 4, 5, 6, 8, 10) — the retry button, the
+  insufficient-funds card/close button, the relaunch button, the
+  notification toast, and the keypad each get their own real radius.
+- Elements with `Image.m_Enabled: false` in the scene (`Interactive Pane`,
+  `ManualStakeInputField`'s background `Panel`) are not drawn at all.
+
+### Font decision
+
+101 of the scene's 103 TMP components resolve to `LiberationSans SDF`
+(TextMesh Pro's stock default); only 2 use a `Bestime SDF.asset`. `Bestime`
+(the game's real display font, `Assets/Fonts/bestime/Bestime.ttf` — free for
+personal + commercial use per its bundled `More Info.txt`) is self-hosted
+and used as the primary display face since it's the one carrying the
+design's actual character; `index.css` falls back to `Liberation Sans` /
+system sans for the LiberationSans-SDF-resolved body text.
+
+### What could not be matched exactly
+
+- **`Square`'s `SpriteRenderer` sprite** (the `Game View` render texture's
+  background plane) isn't resolved by this extraction, which only decodes
+  UI `Image`/`RawImage` sprites, not arbitrary 3D `SpriteRenderer`s. The
+  existing `coin-toss-bg.png`/`coin-toss-bg-wide.png` art from the initial
+  build fills that role as a plausible stand-in.
+- **`image.png`** — the sprite backing `MenuPanel`'s close X and its
+  About/Bet-History row icons — is a multi-icon placeholder sheet in the
+  source (one 128x128 texture containing an unrelated "?" bubble *and* a
+  bar-chart glyph together), and the extraction doesn't decode which
+  sub-region a given usage draws. Its own filename reads as a design
+  placeholder rather than intentional per-context art, so purpose-fit
+  stand-ins (`circle.png` tinted per row, a plain "×" glyph) are used
+  instead rather than guessing at a UV rect.
+- **The `MenuPanel` row icons' exact glyphs** (a chart-like icon for Bet
+  History, a "?" for About, per `image.png`'s two visible sub-images) are
+  therefore approximated as tinted circular badges rather than the specific
+  glyphs, for the same reason as above.
+- **`QuickBet`/`ChoicePanel`'s child rects** (the individual chip buttons,
+  the Heads/Tails button labels' exact vertical split) serialise as
+  `HorizontalLayoutGroup`-driven placeholders (`0` or negative width/height)
+  in the static scene file; `design.ts` reconstructs them from the
+  resolved parent rect + the layout group's own padding/spacing/count,
+  documented inline at each constant rather than left as raw zeros.
+- **The `Addition Button`/`Subtraction Button` steppers** are rendered at
+  their exact scene geometry for pixel fidelity but are visually inert: the
+  game-logic layer (out of scope for this pass) exposes only
+  `addChip(amount)` for a fixed quick-bet value and the manual keypad entry,
+  no generic ±1 stepper action, so wiring them would mean inventing new
+  game-engine semantics rather than reskinning existing behaviour.
+- **The `Interactive Pane` bleed's exact runtime width** — see the
+  recentring correction above; the `+75.6px` split is a documented
+  approximation, not an extracted fact.
 
 ## Verification
 
@@ -313,3 +435,11 @@ npm run dev           # vite + mock server; smoke-tested via a scripted
                         # run confirming the coin's edge always loses
                         # regardless of the player's head/tail choice.
 ```
+
+Visual verification is a headless-Chromium (Playwright) walkthrough at the
+1080x2340 design resolution: idle/bet screen, mid-flip, and the win-reveal
+result screen (trophy + gold "You just won…", quick-bet chips, Heads/Tails
+pills, top bar) — screenshots in `docs/screenshots/`. Also note:
+`LanguageProvider` was never actually wired into `src/main.tsx` since the
+initial scaffold commit — every `useLanguage()` call throws without it —
+fixed there rather than reproduced, since nothing renders at all otherwise.

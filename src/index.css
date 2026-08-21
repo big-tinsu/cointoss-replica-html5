@@ -1,7 +1,17 @@
-/* Coin Toss — HTML5 replica styles.
- * Bestime is the game's real display font (Assets/Fonts/bestime, free for
- * personal + commercial use per its bundled "More Info.txt" — see README).
- * Falls back to a bold system stack when the file isn't reachable. */
+/*
+ * Coin Toss — presentation layer.
+ *
+ * Every colour, size and radius either comes from `src/ui/design.ts`
+ * (extracted from `cointoss.json`) or is a structural rule for the
+ * design-space stage — no invented design tokens. `Bestime` is the game's
+ * real display font (Assets/Fonts/bestime, free for personal + commercial
+ * use per its bundled "More Info.txt"); every TMP component in the scene
+ * that reports a font asset resolves to `LiberationSans SDF` (2 nodes use a
+ * `Bestime SDF.asset` instead — the two Header/logo-adjacent labels), so
+ * Bestime is used for headline moments and a system sans stack covers the
+ * rest, matching Liberation Sans (Arial) metrics closely enough at these
+ * sizes without self-hosting a second font just for two labels.
+ */
 @font-face {
   font-family: "Bestime";
   src: url("/fonts/Bestime.ttf") format("truetype");
@@ -10,265 +20,166 @@
   font-display: swap;
 }
 
-:root {
-  color-scheme: dark;
-  --bg: #0b0c14;
-  --panel: #171a26;
-  --panel-alt: #1f2434;
-  --border: #2c3146;
-  --text: #f2f2f7;
-  --text-dim: #a9adc1;
-  --gold: #f6c214;
-  --red: #e02424;
-  --green: #2a8f3d;
-  --head-color: #4f8ef7;
-  --tail-color: #f77f4f;
-}
-
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html,
 body,
 #root {
-  height: 100%;
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
-  font-family: "Bestime", "Trebuchet MS", system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  overflow-x: hidden;
+  /* Letterbox colour behind the scaled stage — not a design surface, the
+   * design's own background (`backdrop.png`, frame mobile-19) is drawn as
+   * an <img> child so the illustrated art, not a colour, is the ground. */
+  background: #0a0612;
+  color: #fff;
+  font-family: "Liberation Sans", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+  max-width: none;
 }
 
 button {
-  font-family: inherit;
+  font: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
   cursor: pointer;
 }
-
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 0.5rem;
-  text-align: center;
-  padding: 1rem;
+button:focus {
+  outline: none;
+}
+button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
-/* ── Loading / error ────────────────────────────────────────────────── */
-
-.loading-screen,
-.error-screen {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  background: radial-gradient(circle at 50% 30%, #1a2038, var(--bg));
+input {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+input:focus {
+  outline: none;
 }
 
-.loading-logo {
-  max-width: 260px;
-  width: 60%;
-}
-
-.loading-spinner {
-  display: flex;
-  gap: 0.5rem;
-}
-.loading-spinner span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--gold);
-  animation: spinner-bounce 1s infinite ease-in-out;
-}
-.loading-spinner span:nth-child(2) {
-  animation-delay: 0.15s;
-}
-.loading-spinner span:nth-child(3) {
-  animation-delay: 0.3s;
-}
-@keyframes spinner-bounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0.6);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.error-panel {
-  border: 2px solid var(--red);
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 480px;
-  background: var(--panel);
-}
-.error-message {
-  color: var(--red);
-  font-size: 1.1rem;
-  text-align: center;
-}
-
-/* ── Shell / top bar ────────────────────────────────────────────────── */
-
-.game-shell {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: radial-gradient(circle at 50% 0%, #1a2038, var(--bg) 60%);
-}
-
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-}
-.brand img {
-  height: 32px;
-  width: auto;
-}
-.brand-text {
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  white-space: nowrap;
+/* ------------------------------------------------------------------- stage */
+.stage-host {
+  position: fixed;
+  inset: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  --s: 1;
 }
 
-.balance-pill {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.3rem 1rem;
-  line-height: 1.1;
-}
-.balance-pill .label {
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-.balance-pill .value {
-  font-weight: 700;
-  color: var(--gold);
-}
-
-.top-bar-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-.top-bar-actions button {
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
-  color: var(--text);
-  font-size: 1rem;
-}
-.top-bar-actions button:hover {
-  background: var(--border);
-}
-
-/* ── Ticker ─────────────────────────────────────────────────────────── */
-
-.ticker {
-  overflow: hidden;
-  background: #10121c;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-  padding: 0.35rem 0;
-}
-.ticker-track {
-  display: inline-flex;
-  gap: 2rem;
-  animation: ticker-scroll 28s linear infinite;
-}
-.ticker-track span {
-  padding-right: 2rem;
-  color: var(--text-dim);
-  font-size: 0.8rem;
-}
-.ticker-track b,
-.ticker-track strong {
-  color: var(--gold);
-}
-@keyframes ticker-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* ── Main / coin stage ──────────────────────────────────────────────── */
-
-.game-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem 1rem 3rem;
-}
-
-.coin-stage {
-  position: relative;
-  width: min(260px, 60vw);
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.coin-stage-bg {
+.stage {
   position: absolute;
-  inset: -30%;
-  width: 160%;
-  height: 160%;
-  object-fit: contain;
-  opacity: 0.25;
-  z-index: 0;
+  left: 50%;
+  top: 50%;
+  width: 1080px;
+  height: 2340px;
+  transform: translate(-50%, -50%) scale(var(--s));
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Every positioned primitive. Nothing in the stage uses flow layout for
+ * placement — placement is always the extracted rect. */
+.node,
+.spr,
+.tint-spr,
+.tmp,
+.btn {
+  position: absolute;
+}
+
+.btn {
+  display: block;
+}
+
+.spr {
+  object-fit: fill;
   pointer-events: none;
 }
 
-.coin-viewport {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  perspective: 900px;
-  z-index: 1;
+.tint-spr {
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  pointer-events: none;
 }
 
+.tmp {
+  display: flex;
+  line-height: 1.15;
+  white-space: pre-line;
+  user-select: none;
+  pointer-events: none;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.press {
+  transition: transform 90ms ease-out;
+}
+.press:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.press:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.stage-backdrop {
+  /* `background` [0,0,1080x2340] — frame mobile-19 stretched to the full
+   * canvas rect, exactly as the Image does. */
+  object-fit: fill;
+}
+
+/* --------------------------------------------------------------- top bar */
+.bal-value-fit {
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------- coin viewport */
+/* `Game Panel/Game View` — a RawImage of a render texture framing the 3D
+ * `Coin` mesh. Reproduced as a CSS 3D flip-card (a literal two-sided disc
+ * rotating in 3D), landing on the named face exactly like the Animator's
+ * `head`/`tail` states; `side` swaps to the dedicated edge sprite with a
+ * settling wobble since there's no third flip-card face for a coin's edge. */
+.coin-viewport {
+  overflow: hidden;
+  perspective: 1400px;
+}
+.coin-viewport-bg {
+  object-fit: cover;
+  opacity: 0.6;
+}
 .coin-flipper {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 8%;
   transform-style: preserve-3d;
 }
 .coin-face {
@@ -277,7 +188,7 @@ button {
   backface-visibility: hidden;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 0 30px rgba(246, 194, 20, 0.35);
+  box-shadow: 0 0 40px rgba(246, 194, 20, 0.35);
 }
 .coin-face img {
   width: 100%;
@@ -297,7 +208,7 @@ button {
     transform: translateY(0) rotateY(0deg);
   }
   50% {
-    transform: translateY(-6px) rotateY(0deg);
+    transform: translateY(-2%) rotateY(0deg);
   }
 }
 
@@ -313,7 +224,6 @@ button {
   }
 }
 
-/* Lands on the FRONT face (heads): an even number of half-turns. */
 .coin-flipper[data-anim="head"] {
   animation: coin-flip-head 5s cubic-bezier(0.2, 0.6, 0.25, 1) forwards;
 }
@@ -322,14 +232,13 @@ button {
     transform: rotateY(0deg) translateY(0);
   }
   60% {
-    transform: rotateY(1260deg) translateY(-40px);
+    transform: rotateY(1260deg) translateY(-14%);
   }
   to {
     transform: rotateY(1800deg) translateY(0);
   }
 }
 
-/* Lands on the BACK face (tails): an odd number of half-turns. */
 .coin-flipper[data-anim="tail"] {
   animation: coin-flip-tail 5s cubic-bezier(0.2, 0.6, 0.25, 1) forwards;
 }
@@ -338,7 +247,7 @@ button {
     transform: rotateY(0deg) translateY(0);
   }
   60% {
-    transform: rotateY(1260deg) translateY(-40px);
+    transform: rotateY(1260deg) translateY(-14%);
   }
   to {
     transform: rotateY(1980deg) translateY(0);
@@ -346,6 +255,9 @@ button {
 }
 
 .coin-side {
+  position: absolute;
+  left: 20%;
+  top: 20%;
   width: 60%;
   height: 60%;
   object-fit: contain;
@@ -372,235 +284,68 @@ button {
   }
 }
 
-/* ── Bet panel ──────────────────────────────────────────────────────── */
-
-.bet-panel {
-  width: min(420px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.25rem;
+/* -------------------------------------------------------------- ticker */
+/* `NavPanel/Ticker` is an inactive decorative hairline in the scene, but
+ * `Ticker.cs` is a genuinely live fabricated marquee (game-logic layer's
+ * earlier documented decision) — rendered as a thin strip directly under
+ * NavPanel, matching the hairline's own tinted-white styling. */
+.ticker {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+.ticker-track {
+  display: inline-flex;
+  gap: 3rem;
+  animation: ticker-scroll 30s linear infinite;
+  padding: 0.3rem 0;
+}
+.ticker-track span {
+  padding-right: 3rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 22px;
+}
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-.stake-limits {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-
-.stake-editor {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.5rem 0.9rem;
-}
-.stake-label {
-  color: var(--text-dim);
-  font-size: 0.8rem;
-}
-.stake-input,
-.stake-display {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-align: right;
-  flex: 1;
-}
-.stake-display {
-  cursor: pointer;
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-}
-.chip-row button {
-  flex: 1 1 auto;
-  min-width: 3.2rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
-  color: var(--text);
-  font-weight: 600;
-}
-.chip-row button:hover:not(:disabled) {
-  background: var(--border);
-}
-.chip-row button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.choice-row {
-  display: flex;
-  gap: 0.75rem;
-}
-.choice-button {
-  flex: 1;
-  padding: 0.9rem;
-  border-radius: 12px;
-  border: none;
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #fff;
-  text-transform: uppercase;
-  transition: transform 0.1s ease;
-}
-.choice-button:active:not(:disabled) {
-  transform: scale(0.97);
-}
-.choice-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.choice-head {
-  background: linear-gradient(180deg, var(--head-color), #2f5fc9);
-}
-.choice-tail {
-  background: linear-gradient(180deg, var(--tail-color), #c9542f);
-}
-
-/* Keypad overlay (mobile manual stake entry — KeypadManager, spec §0/§3) */
-.keypad-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(6, 7, 12, 0.85);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  z-index: 50;
-}
-.keypad-display {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--gold);
-}
-.numeric-keypad {
-  width: min(320px, 90vw);
-}
-.keypad-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
+/* ---------------------------------------------------------------- keypad */
 .keypad-key {
-  padding: 1rem;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
-  color: var(--text);
-  font-size: 1.1rem;
+  transition: filter 90ms ease-out;
 }
-.keypad-done {
-  margin-top: 0.75rem;
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 10px;
-  border: none;
-  background: var(--gold);
-  color: #1a1a1a;
-  font-weight: 700;
+.keypad-key:active {
+  filter: brightness(1.25);
 }
 
-/* ── Modals (results, insufficient funds, cashout retry, help, menu, bet
-   history) share one backdrop/panel treatment ──────────────────────────── */
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(4, 5, 10, 0.72);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  z-index: 40;
+/* ------------------------------------------------------------- overlays */
+.modal-fade {
+  animation: modal-fade-in 160ms ease-out;
 }
-.modal-panel {
-  width: min(460px, 100%);
-  max-height: 90vh;
-  overflow-y: auto;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-.modal-panel h2 {
-  margin: 0;
-}
-.primary-button,
-.secondary-button {
-  padding: 0.8rem 1.2rem;
-  border-radius: 10px;
-  border: none;
-  font-weight: 700;
-}
-.primary-button {
-  background: var(--gold);
-  color: #1a1a1a;
-}
-.secondary-button {
-  background: var(--panel-alt);
-  color: var(--text);
-  border: 1px solid var(--border);
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-/* Results panel specifics */
-.results-panel {
-  align-items: center;
-  text-align: center;
-}
-.trophy-row {
-  font-size: 3rem;
-}
-.outcome-word {
-  margin: 0;
-  font-size: 2rem;
-  letter-spacing: 0.08em;
-}
-.outcome-detail {
-  color: var(--text-dim);
-}
-.results-actions {
-  display: flex;
-  gap: 0.75rem;
-  width: 100%;
-}
-.results-actions button {
-  flex: 1;
-}
-
-/* Confetti (spec §7 — small CSS celebration, see README) */
+/* Confetti (small CSS celebration tied to any win — see README) */
 .confetti-burst {
-  position: relative;
-  height: 40px;
-  width: 100%;
+  position: absolute;
   pointer-events: none;
 }
 .confetti-piece {
   position: absolute;
-  top: -10px;
+  top: 0;
   left: calc(4% * var(--i));
-  width: 6px;
-  height: 12px;
+  width: 10px;
+  height: 18px;
   background: hsl(calc(var(--i) * 15), 90%, 60%);
   animation: confetti-fall 1.4s ease-in calc(var(--i) * 0.03s) both;
 }
@@ -610,196 +355,31 @@ button {
     opacity: 1;
   }
   100% {
-    transform: translateY(120px) rotate(320deg);
+    transform: translateY(220px) rotate(320deg);
     opacity: 0;
   }
 }
 
-/* Help modal */
-.help-modal h3 {
-  margin: 0.25rem 0 0;
+/* -------------------------------------------------------- loading spinner */
+.loading-dot {
+  border-radius: 50%;
+  background: #fff;
+  animation: loading-pulse 1s ease-in-out infinite;
 }
-.help-intro {
-  color: var(--text-dim);
-  font-size: 0.85rem;
-}
-.help-warning {
-  color: var(--red);
-  font-weight: 600;
-}
-
-/* Menu / language panel */
-.language-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-.language-option {
-  width: 100%;
-  text-align: left;
-  padding: 0.6rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
-  color: var(--text);
-}
-.language-option.is-active {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-/* ── Notifications ──────────────────────────────────────────────────── */
-
-.notification-toast {
-  position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.6rem 1.2rem;
-  border-radius: 999px;
-  font-weight: 600;
-  z-index: 60;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-.notification-toast.is-info {
-  background: var(--green);
-  color: #fff;
-}
-.notification-toast.is-error {
-  background: var(--red);
-  color: #fff;
-}
-
-/* ── Bet history — one component, responsive table<->cards ─────────── */
-
-.bet-history-panel {
-  width: min(560px, 100%);
-}
-.bet-history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.bet-history-header button {
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: 1.4rem;
-  line-height: 1;
-}
-.no-bets {
-  text-align: center;
-  color: var(--text-dim);
-}
-
-.bet-history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-.bet-history-table th,
-.bet-history-table td {
-  padding: 0.5rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-.outcome-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.outcome-cell img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-}
-.status-won {
-  background: rgb(59, 143, 61); /* (0.23,0.56,0.24) from CoinTossBetHistoryManager.cs, spec §3 */
-}
-.status-lost {
-  background: rgb(112, 15, 10); /* (0.44,0.06,0.04) from CoinTossBetHistoryManager.cs, spec §3 */
-}
-
-.bet-history-cards {
-  display: none;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-.bet-history-card {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-}
-.bet-history-card-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-.pagination button {
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 0.3rem 0.8rem;
-}
-.pagination button:disabled {
-  opacity: 0.4;
-}
-
-@media (max-width: 640px) {
-  .bet-history-table {
-    display: none;
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.7);
   }
-  .bet-history-cards {
-    display: flex;
+  50% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-/* ── Orientation overlay (spec §1 step 17, §7 — the one real one of the
-   three sibling games) ─────────────────────────────────────────────────── */
-
-.orientation-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(4, 5, 10, 0.94);
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 2rem;
-  text-align: center;
-  z-index: 100;
-}
+/* ----------------------------------------------------- orientation overlay */
 .orientation-icon {
-  font-size: 3rem;
   animation: orientation-spin 1.6s ease-in-out infinite;
 }
 @keyframes orientation-spin {
@@ -812,13 +392,16 @@ button {
   }
 }
 
-/* ── Layout breakpoints — one component tree, CSS-only responsive switch
-   (spec §5's explicit recommendation, not two divergent scenes) ────────── */
-
-.layout-portrait .top-bar {
-  flex-direction: column;
-  align-items: stretch;
+/* -------------------------------------------------------------- scrollers */
+.scroll-y {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
-.layout-portrait .brand {
-  justify-content: center;
+.scroll-y::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-y::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
 }

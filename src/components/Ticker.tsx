@@ -42,7 +42,7 @@ export function Ticker({ currency }: { currency: string }) {
   }, [currency]);
 
   return (
-    <div className="ticker">
+    <div className="node ticker" style={{ left: 0, top: 366.66, width: 1080, height: 40 }}>
       <div className="ticker-track">
         <span>{text}</span>
         <span aria-hidden="true">{text}</span>
