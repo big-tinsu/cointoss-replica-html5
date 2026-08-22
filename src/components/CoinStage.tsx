@@ -1,5 +1,6 @@
-import { COIN_VIEWPORT, img } from "../ui/design";
+import { img } from "../ui/design";
 
+import { useDesign } from "../ui/DesignContext";
 const BASE = import.meta.env.BASE_URL;
 
 export type CoinAnim = "idle" | "load" | "head" | "tail" | "side";
@@ -20,6 +21,7 @@ export type CoinAnim = "idle" | "load" | "head" | "tail" | "side";
  * from the initial build fills that role.
  */
 export function CoinStage({ anim }: { anim: CoinAnim }) {
+  const { COIN_VIEWPORT } = useDesign();
   return (
     <div
       className="node coin-viewport"

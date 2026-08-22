@@ -1,13 +1,15 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { useOrientationGuard } from "../hooks/useOrientationGuard";
-import { C, ORIENTATION, img } from "../ui/design";
+import { C, img } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /** `PortraitOrientationWarning`/`GameManager.DisplayOrientationMessage`
  * (spec §1 step 17, §7 Prefabs) — the one game of the three siblings where
  * this "please rotate your device" overlay is real, not dead/commented-out
  * code. */
 export function OrientationOverlay() {
+  const { ORIENTATION } = useDesign();
   const { mismatch, messageKey } = useOrientationGuard();
   const { t } = useLanguage();
   if (!mismatch) return null;

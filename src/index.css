@@ -93,8 +93,10 @@ input:focus {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1080px;
-  height: 2340px;
+  /* Set per-scene by Stage.tsx from the active CanvasScaler reference
+     resolution — the Mobile and Desktop Unity scenes differ. */
+  width: var(--ref-w, 1080px);
+  height: var(--ref-h, 2340px);
   transform: translate(-50%, -50%) scale(var(--s));
   transform-origin: center center;
   will-change: transform;

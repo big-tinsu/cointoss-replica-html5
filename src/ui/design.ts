@@ -23,6 +23,24 @@
 export const DESIGN_W = 1080;
 export const DESIGN_H = 2340;
 
+/** `Canvas/Background` — the full-canvas backdrop. Mobile uses interface frame
+ * mobile-19; the Desktop scene uses a different, landscape-authored sprite
+ * (`Coin & Toss - desktop - 1.png`), so the sprite name travels with the rect
+ * rather than being hardcoded at the call site. */
+export const BACKDROP = {
+  rect: { x: 0, y: 0, w: 1080, h: 2340 },
+  sprite: "backdrop",
+} as const;
+
+/** The Mobile scene's Canvas -> CanvasScaler, verbatim. The Desktop scene
+ * is a separate layout — see `design.desktop.ts`. */
+export const CANVAS_MOBILE = {
+  refW: 1080,
+  refH: 2340,
+  match: 1,
+  mode: "MatchWidthOrHeight",
+} as const;
+
 const BASE = import.meta.env.BASE_URL;
 /** The 13 real sliced comp frames actually referenced by the scene,
  * `Assets/Interface Design - Coin & Toss - Asset/...- mobile - N.png`,

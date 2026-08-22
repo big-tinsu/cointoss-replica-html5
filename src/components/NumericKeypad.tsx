@@ -1,7 +1,8 @@
 import { playClick } from "../state/sfx";
-import { C, KEYPAD, R, img } from "../ui/design";
+import { C, R, img } from "../ui/design";
 import { Spr, TintSpr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `CustomKeypad` (`Assets/Keypad/`, spec §0/§3) — the shared custom numeric
  * keypad: digits, `.`, backspace, capped at a 7-character length and 2
@@ -30,6 +31,7 @@ export function NumericKeypad({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const { KEYPAD } = useDesign();
   function pressKey(key: string) {
     playClick();
     if (value.length >= CHAR_LIMIT) return;

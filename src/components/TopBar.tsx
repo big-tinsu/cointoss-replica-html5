@@ -1,9 +1,10 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { C, NAV, ui } from "../ui/design";
+import { C, ui } from "../ui/design";
 import { Spr, TintSpr, Tmp } from "../ui/Sprite";
 import { useAutoFit } from "../ui/useAutoFit";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `NavPanel` (spec §5) — logo, live balance, and the single hamburger
  * `MenuButton`. Unlike the sibling ports, NavPanel itself carries no
@@ -20,6 +21,7 @@ export function TopBar({
   balance: number;
   onMenu: () => void;
 }) {
+  const { NAV } = useDesign();
   const { t } = useLanguage();
   // `Currency` (the "USD" code) is its own sibling TMP node right before
   // this one — the value here is the numeric balance only, not re-prefixed.

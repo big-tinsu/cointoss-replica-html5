@@ -1,5 +1,5 @@
-import { LOADING } from "../ui/design";
 
+import { useDesign } from "../ui/DesignContext";
 const BASE = import.meta.env.BASE_URL;
 
 /**
@@ -12,6 +12,7 @@ const BASE = import.meta.env.BASE_URL;
  * no per-dot positions to reproduce.
  */
 export function LoadingScreen() {
+  const { LOADING } = useDesign();
   return (
     <>
       <img

@@ -3,9 +3,10 @@ import { useAlternatingColor } from "./Customizable";
 import { ConfettiBurst } from "./ConfettiBurst";
 import { playClick } from "../state/sfx";
 import type { RoundResult } from "../state/gameEngine";
-import { C, RESULTS, img } from "../ui/design";
+import { C, img } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `ResultsPanel`/`UIManager.OnWin`/`OnLoss` (`UIManager.cs:71-90`, spec §1
  * step 13) — the trophy badge (`win-art.png`) plus `Rebet`/`Newround`. The
@@ -27,6 +28,7 @@ export function ResultsPanel({
   onRebet: () => void;
   onNewRound: () => void;
 }) {
+  const { RESULTS } = useDesign();
   const { t } = useLanguage();
   const { colorA, colorB } = useAlternatingColor(C.gold, "#e02424");
   if (!visible || !result) return null;

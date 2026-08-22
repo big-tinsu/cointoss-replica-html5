@@ -1,11 +1,13 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { C, INSUFFICIENT, R, img } from "../ui/design";
+import { C, R, img } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /** `Insufficient Funds Panel` (`VirtualCashManager.CheckBalance`, spec §3)
  * — gates `UIManager.ConfirmBet()` on `balance - amountPlaced < 0`. */
 export function InsufficientFundsModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { INSUFFICIENT } = useDesign();
   const { t } = useLanguage();
   if (!visible) return null;
   return (

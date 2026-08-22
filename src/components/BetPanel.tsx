@@ -3,10 +3,11 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
 import { NumericKeypad } from "./NumericKeypad";
 import type { PlayerSelection } from "../api/types";
-import { C, CHIPS, CHOICE, STAKE_FIELD, ui } from "../ui/design";
+import { C, ui } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
 import { useAutoFit } from "../ui/useAutoFit";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `Interactive Pane/BetPanel` (spec §2/§3/§5) — stake display + manual
  * input (desktop `TMP_InputField` / mobile `KeypadManager`), the
@@ -46,6 +47,7 @@ export function BetPanel({
   onAddChip: (amount: number) => void;
   onChoose: (choice: PlayerSelection) => void;
 }) {
+  const { CHIPS, CHOICE, STAKE_FIELD } = useDesign();
   const { t } = useLanguage();
   const [keypadOpen, setKeypadOpen] = useState(false);
   const shown = stakeText || String(stake);

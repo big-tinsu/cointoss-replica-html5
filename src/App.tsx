@@ -3,6 +3,8 @@ import { useGameSession } from "./state/useGameSession";
 import { useLanguage } from "./i18n/LanguageContext";
 import { getLaunchParams } from "./api/urlParams";
 import { Stage } from "./ui/Stage";
+import { DesignProvider, useDesign } from "./ui/DesignContext";
+import { useResponsiveLayout } from "./hooks/useResponsiveLayout";
 import { ui } from "./ui/design";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { ErrorScreen } from "./components/ErrorScreen";
@@ -35,7 +37,23 @@ function computeAnim(busy: boolean, isFlipping: boolean, flipOutcome: string | n
  * Warning`) each of which is a full-screen sibling of `Game Panel`, not
  * nested inside it.
  */
+/**
+ * Unity swaps whole scenes on device type (`DynamicUiManager`:
+ * `Screen.width < Screen.height` => the Mobile scene, else the Desktop one).
+ * The provider picks the matching token set; everything below reads it through
+ * `useDesign()`, so one component tree renders either scene.
+ */
 export default function App() {
+  const { isPortrait } = useResponsiveLayout();
+  return (
+    <DesignProvider isDesktop={!isPortrait}>
+      <Game />
+    </DesignProvider>
+  );
+}
+
+function Game() {
+  const { canvas, BACKDROP } = useDesign();
   const { state, actions } = useGameSession();
   const { boot: bootLanguage } = useLanguage();
 
@@ -54,17 +72,17 @@ export default function App() {
 
   return (
     <CustomizationProvider customData={state.customization}>
-      <Stage>
+      <Stage spec={canvas}>
         {/* z 1 — `background`: frame mobile-19 stretched to the full
          * 1080x2340 canvas rect. This illustrated altar scene is the
          * design's ground; there is no gradient anywhere in the scene. */}
         <img
           className="spr stage-backdrop"
-          src={ui("backdrop")}
+          src={ui(BACKDROP.sprite)}
           alt=""
-          width={1080}
-          height={2340}
-          style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 2340 }}
+          width={BACKDROP.rect.w}
+          height={BACKDROP.rect.h}
+          style={{ position: "absolute", left: BACKDROP.rect.x, top: BACKDROP.rect.y, width: BACKDROP.rect.w, height: BACKDROP.rect.h }}
           decoding="sync"
           loading="eager"
         />

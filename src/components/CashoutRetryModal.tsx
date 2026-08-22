@@ -1,8 +1,9 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { C, CASHOUT_RETRY, R } from "../ui/design";
+import { C, R } from "../ui/design";
 import { Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /** `Cashout Retry`/`GameManager.RetryCashout` (`GameManager.cs:528-572`) —
  * shown when a post-round re-authenticate call fails to reach the server;
  * the button is literally named `Rebet` in the scene but its TMP text reads
@@ -16,6 +17,7 @@ export function CashoutRetryModal({
   message: string;
   onRetry: () => void;
 }) {
+  const { CASHOUT_RETRY } = useDesign();
   const { t } = useLanguage();
   if (!visible) return null;
   return (

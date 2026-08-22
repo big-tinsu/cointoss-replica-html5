@@ -1,6 +1,7 @@
-import { C, ERROR, R, img } from "../ui/design";
+import { C, R, img } from "../ui/design";
 import { Spr, TintSpr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `Unexpected Error Display` (`GameLoader.ShowError`, `GameLoader.cs:473-
  * 488`, spec §7) — a fatal boot error: red exclamation icon, HTTP-style
@@ -12,6 +13,7 @@ import { Spr, TintSpr, Tmp } from "../ui/Sprite";
  * exactly").
  */
 export function ErrorScreen({ message }: { message: string }) {
+  const { ERROR } = useDesign();
   return (
     <>
       <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: "rgba(72, 0, 0, 0.5)" }} />

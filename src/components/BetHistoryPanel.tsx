@@ -1,9 +1,10 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
 import type { BetRecordData, Pagination } from "../api/types";
-import { BET_HISTORY, C, img } from "../ui/design";
+import { C, img } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /** `CoinTossBetHistoryManager.cs:85-90` (spec §3) — outcome sprite is chosen
  * by a `.Contains("head")`/`.Contains("tail")`/else-fallback string check,
  * NOT an exact match — so any unrecognized `generatedOutcome` string also
@@ -62,6 +63,7 @@ export function BetHistoryPanel({
   onClose: () => void;
   onPageChange: (page: number) => void;
 }) {
+  const { BET_HISTORY } = useDesign();
   const { t } = useLanguage();
   if (!visible) return null;
 

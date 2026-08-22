@@ -1,8 +1,9 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { C, HELP, img } from "../ui/design";
+import { C, img } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `About` (spec §6) — the only place in the codebase that plainly
  * documents the head/tail/side win rule, treated as the source of truth
@@ -21,6 +22,7 @@ export function HelpModal({
   oddsOne: number;
   onClose: () => void;
 }) {
+  const { HELP } = useDesign();
   const { t } = useLanguage();
   if (!visible) return null;
 

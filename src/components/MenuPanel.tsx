@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick, setMuted } from "../state/sfx";
-import { C, MENU, img } from "../ui/design";
+import { C, img } from "../ui/design";
 import { TintSpr, Tmp } from "../ui/Sprite";
 
+import { useDesign } from "../ui/DesignContext";
 /**
  * `MenuPanel` (spec §5) — a near-full-bleed translucent purple overlay
  * (not a slide-in side drawer), opened by `NavPanel`'s single `MenuButton`.
@@ -32,6 +33,7 @@ export function MenuPanel({
   onHelp: () => void;
   onBetHistory: () => void;
 }) {
+  const { MENU } = useDesign();
   const { t } = useLanguage();
   const [muted, setMutedState] = useState(false);
   if (!visible) return null;

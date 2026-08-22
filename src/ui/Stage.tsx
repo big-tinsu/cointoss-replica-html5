@@ -1,30 +1,56 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { DESIGN_H, DESIGN_W } from "./design";
 
 /**
- * The 1080x2340 design-space stage — same architecture as the Penaldo
- * sibling port's `ui/Stage.tsx`.
+ * Unity `CanvasScaler` in `ScaleWithScreenSize` mode, implemented exactly.
  *
- * This scene's own `CanvasScaler` is actually `ScaleWithScreenSize` with
- * `m_MatchWidthOrHeight: 1` (full match-height — `scale = h/2340`, canvas
- * width elastically follows the device aspect), not the 0.5 geometric-mean
- * split used by the sibling games. That is *why* several containers here
- * (`NavPanel`, `Interactive Pane`, `MenuPanel`, ...) are authored far wider
- * than 1080 (bleeding to roughly [-216, 1296]): on a wide/landscape device
- * Unity's own canvas literally does become that wide, revealing the bleed.
+ * Each Unity scene declares its own reference resolution, screen-match mode
+ * and match factor, and each game ships TWO scenes (Mobile and Desktop — see
+ * `design.ts` and `design.desktop.ts`), so the scaler has to be data-driven
+ * rather than a hardcoded formula. The previous implementation hardcoded
+ * `scale = h / refH`, which is only the correct collapse of the general
+ * formula when `matchWidthOrHeight === 1`; the Diced desktop scene is
+ * 0.75/Expand and the Streetsoccer desktop scene is 0.5, so that hardcoding
+ * mis-scaled every element outside the mobile scene.
  *
- * This port deliberately keeps the shared 1080x2340-fixed-box +
- * `sqrt((w/1080)*(h/2340))` convention used across this game family instead
- * of reproducing the per-scene match-height math, so the presentation layer
- * stays architecturally identical to the sibling ports (same Stage, same
- * `rect_css` contract). At the primary 1080-wide portrait target this is
- * pixel-identical either way; the one place it diverges from a literal
- * Unity relaunch is that the wide bleed content is clipped by the stage's
- * own 1080px edge rather than revealed on very wide/landscape viewports —
- * documented in the README's "Visual fidelity" section.
+ * Unity's own definitions (`CanvasScaler.HandleScaleWithScreenSize`):
+ *
+ *   MatchWidthOrHeight: scale = 2 ^ ((1-m)*log2(w/refW) + m*log2(h/refH))
+ *   Expand:             scale = min(w/refW, h/refH)
+ *   Shrink:             scale = max(w/refW, h/refH)
+ *
+ * The stage is a fixed refW x refH box scaled by that factor and centred;
+ * every descendant positions itself with `position: absolute` and raw
+ * design-space px. Wherever the scaled box does not reach, the page
+ * background shows through — which is why the scenes' own full-bleed
+ * backdrops are authored slightly wider than the reference width.
+ *
+ * One resize listener, coalesced onto an animation frame, writes CSS custom
+ * properties — no React state, so a resize never re-renders the tree.
  */
-export function Stage({ children }: { children: ReactNode }) {
+export type ScreenMatchMode = "MatchWidthOrHeight" | "Expand" | "Shrink";
+
+export type CanvasSpec = {
+  refW: number;
+  refH: number;
+  match: number;
+  mode: ScreenMatchMode;
+};
+
+export function canvasScale(spec: CanvasSpec, w: number, h: number): number {
+  const rw = w / spec.refW;
+  const rh = h / spec.refH;
+  switch (spec.mode) {
+    case "Expand":
+      return Math.min(rw, rh);
+    case "Shrink":
+      return Math.max(rw, rh);
+    default:
+      return Math.pow(2, (1 - spec.match) * Math.log2(rw) + spec.match * Math.log2(rh));
+  }
+}
+
+export function Stage({ spec, children }: { spec: CanvasSpec; children: ReactNode }) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,8 +62,14 @@ export function Stage({ children }: { children: ReactNode }) {
       frame = 0;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const scale = Math.sqrt((w / DESIGN_W) * (h / DESIGN_H));
+      const scale = canvasScale(spec, w, h);
       host.style.setProperty("--s", String(scale));
+      host.style.setProperty("--ref-w", `${spec.refW}px`);
+      host.style.setProperty("--ref-h", `${spec.refH}px`);
+      // Visible canvas in design-space units: wider than the reference on a
+      // viewport whose aspect is wider than the design's.
+      host.style.setProperty("--canvas-w", `${w / scale}px`);
+      host.style.setProperty("--canvas-h", `${h / scale}px`);
     };
 
     const schedule = () => {
@@ -53,7 +85,7 @@ export function Stage({ children }: { children: ReactNode }) {
       window.removeEventListener("resize", schedule);
       window.removeEventListener("orientationchange", schedule);
     };
-  }, []);
+  }, [spec]);
 
   return (
     <div className="stage-host" ref={hostRef}>
