@@ -1,7 +1,6 @@
 import { img } from "../ui/design";
 
 import { useDesign } from "../ui/DesignContext";
-const BASE = import.meta.env.BASE_URL;
 
 export type CoinAnim = "idle" | "load" | "head" | "tail" | "side";
 
@@ -14,11 +13,18 @@ export type CoinAnim = "idle" | "load" | "head" | "tail" | "side";
  * — `data-anim` selects the `@keyframes` in `index.css` that lands the card
  * on the named face, matching the Animator literally.
  *
- * `Square`'s own `SpriteRenderer` sprite isn't resolved by this extraction
- * (only UI `Image`/`RawImage` sprites are decoded, not arbitrary 3D
- * `SpriteRenderer`s) — see the README's "What could not be matched
- * exactly"; the existing `coin-toss-bg.png`/`coin-toss-bg-wide.png` art
- * from the initial build fills that role.
+ * `Game View` is a bare `RawImage` — the render texture, nothing else. The
+ * `Square` behind the coin is a 3D `SpriteRenderer` INSIDE that texture and
+ * is not resolved by this extraction (only UI `Image`/`RawImage` sprites are
+ * decoded) — see the README's "What could not be matched exactly".
+ *
+ * It must not be stood in for with `coin-toss-bg.png`: that file is the
+ * 1080x1920 full-screen MOBILE backdrop, and painting it into this 700x700
+ * box drew an opaque, hard-edged rectangle of squashed temple art over the
+ * real backdrop — the most visible defect on the desktop scene. The camera
+ * clears to transparent, so the coin floats on the page backdrop; the soft
+ * pool of light under it is a non-rectangular radial wash, which is what the
+ * live build shows.
  */
 export function CoinStage({ anim }: { anim: CoinAnim }) {
   const { COIN_VIEWPORT } = useDesign();
@@ -27,12 +33,7 @@ export function CoinStage({ anim }: { anim: CoinAnim }) {
       className="node coin-viewport"
       style={{ left: COIN_VIEWPORT.x, top: COIN_VIEWPORT.y, width: COIN_VIEWPORT.w, height: COIN_VIEWPORT.h }}
     >
-      <img
-        className="spr coin-viewport-bg"
-        src={`${BASE}assets/img/coin-toss-bg.png`}
-        alt=""
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-      />
+      <span className="coin-viewport-glow" aria-hidden="true" />
       {anim === "side" ? (
         <img className="coin-side" src={img("side")} alt="Side" />
       ) : (

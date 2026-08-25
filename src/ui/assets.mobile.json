@@ -1,0 +1,477 @@
+{
+ "/Canvas/About/Back button/Back button (1)": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Bet History/Back button/Back button (1)": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Bet History/Next Button": {
+  "file": "free-flat-arrow-1-e-icon.png",
+  "sprite": "Free Flat Arrow 1 E Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 E Icon.png"
+ },
+ "/Canvas/Bet History/No Bet to Display/Image/Bug": {
+  "file": "bug.png",
+  "sprite": "bug.png",
+  "unity": "Assets/Images and Sprites/bug.png"
+ },
+ "/Canvas/Bet History/Previous Button": {
+  "file": "free-flat-arrow-1-w-icon.png",
+  "sprite": "Free Flat Arrow 1 W Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 W Icon.png"
+ },
+ "/Canvas/ErrorPanel": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/ErrorPanel/Image": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/BetConfirmationPanel/Panel/Icon": {
+  "file": "circle.png",
+  "sprite": "circle.png",
+  "unity": "Assets/Images and Sprites/circle.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/123": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/123/1": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/123/2": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/123/3": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/456": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/456/4": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/456/5": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/456/6": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/789": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/789/7": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/789/8": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/789/9": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/dotzerobackspace": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/dotzerobackspace/0": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/dotzerobackspace/dot": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/ButtonsParent/dotzerobackspace/dot/Image": {
+  "file": "point.png",
+  "sprite": "point.png",
+  "unity": "Assets/Keypad/Sprites/point.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/InputDisplay": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/InputDisplay/Input": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/InputDisplay/Input/backspace": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/InputDisplay/Input/backspace/Image": {
+  "file": "point.png",
+  "sprite": "point.png",
+  "unity": "Assets/Keypad/Sprites/point.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/InputDisplay/Input/backspace/Image/Image (1)": {
+  "file": "point.png",
+  "sprite": "point.png",
+  "unity": "Assets/Keypad/Sprites/point.png"
+ },
+ "/Canvas/Game Panel/CustomKeypad/Keypad/Save button": {
+  "file": "round-edge-sprite.png",
+  "sprite": "round-edge-sprite.png",
+  "unity": "Assets/Keypad/Sprites/round-edge-sprite.png"
+ },
+ "/Canvas/Game Panel/FreeBetHelp/Image": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/FreeBetHelp/Image/Button": {
+  "file": "circle.png",
+  "sprite": "circle.png",
+  "unity": "Assets/Images and Sprites/circle.png"
+ },
+ "/Canvas/Game Panel/FreeBetHelp/Image/Button/Image": {
+  "file": "free-flat-arrow-1-w-icon.png",
+  "sprite": "Free Flat Arrow 1 W Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 W Icon.png"
+ },
+ "/Canvas/Game Panel/FreeBetPrompt/Image": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/FreeBetPrompt/Image/Close Button": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/FreeBetPrompt/Image/HelpButton": {
+  "file": "circle.png",
+  "sprite": "circle.png",
+  "unity": "Assets/Images and Sprites/circle.png"
+ },
+ "/Canvas/Game Panel/FreeBetPrompt/Image/HelpButton/Image": {
+  "file": "circle.png",
+  "sprite": "circle.png",
+  "unity": "Assets/Images and Sprites/circle.png"
+ },
+ "/Canvas/Game Panel/Insufficient Funds Panel/Image": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/Insufficient Funds Panel/Image/Button": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ChoicePanel/Heads": {
+  "file": "interface-design-coin-toss-mobile-15.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 15.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 15.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ChoicePanel/Tails": {
+  "file": "interface-design-coin-toss-mobile-16.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 16.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 16.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ManualStakeInputField/Addition Button": {
+  "file": "interface-design-coin-toss-mobile-11.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 11.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 11.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ManualStakeInputField/Addition Button/Image": {
+  "file": "interface-design-coin-toss-mobile-13.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 13.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 13.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ManualStakeInputField/InputField (TMP)": {
+  "file": "interface-design-coin-toss-mobile-10.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 10.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 10.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ManualStakeInputField/Subtraction Button": {
+  "file": "interface-design-coin-toss-mobile-11.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 11.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 11.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/ManualStakeInputField/Subtraction Button/Image": {
+  "file": "interface-design-coin-toss-mobile-12.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 12.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 12.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/FirstRow/100": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/FirstRow/1000": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/FirstRow/200": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/FirstRow/500": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/SecondRow/10000": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/SecondRow/2000": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/SecondRow/20000": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/BetPanel/QuickBet/SecondRow/5000": {
+  "file": "interface-design-coin-toss-mobile-14.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 14.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 14.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/Cashout Retry/Rebet": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/ResultsPanel/Image": {
+  "file": "win-art.png",
+  "sprite": "win-art.png",
+  "unity": "Assets/Images and Sprites/win-art.png"
+ },
+ "/Canvas/Game Panel/Interactive Pane/ResultsPanel/Image/Image": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Game Panel/Loading Display bkp/Holder": {
+  "file": "circle.png",
+  "sprite": "circle.png",
+  "unity": "Assets/Images and Sprites/circle.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/About Button/Icon": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/About Button/Icon (1)": {
+  "file": "free-flat-arrow-1-e-icon.png",
+  "sprite": "Free Flat Arrow 1 E Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 E Icon.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/BetHistoryButton/Icon": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/BetHistoryButton/Icon (1)": {
+  "file": "free-flat-arrow-1-e-icon.png",
+  "sprite": "Free Flat Arrow 1 E Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 E Icon.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/CloseButton/Image": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/mute/Icon": {
+  "file": "point.png",
+  "sprite": "point.png",
+  "unity": "Assets/Keypad/Sprites/point.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/mute/Icon (1)": {
+  "file": "free-flat-arrow-1-e-icon.png",
+  "sprite": "Free Flat Arrow 1 E Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 E Icon.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/mute/Icon/Image": {
+  "file": "volume-off.png",
+  "sprite": "volume-off.png",
+  "unity": "Assets/Images and Sprites/Sound Sprites/volume-off.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/unmute/Icon": {
+  "file": "point.png",
+  "sprite": "point.png",
+  "unity": "Assets/Keypad/Sprites/point.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/unmute/Icon (1)": {
+  "file": "free-flat-arrow-1-e-icon.png",
+  "sprite": "Free Flat Arrow 1 E Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 1 E Icon.png"
+ },
+ "/Canvas/Game Panel/MenuPanel/Panel/unmute/Icon/Image": {
+  "file": "volume.png",
+  "sprite": "volume.png",
+  "unity": "Assets/Images and Sprites/Sound Sprites/volume.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/Close Button/Image": {
+  "file": "image.png",
+  "sprite": "image.png",
+  "unity": "Assets/Images and Sprites/image.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/ConfirmButton": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/MultiRoundChoicePAnel/MultiBet/FirstChoice": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/MultiRoundChoicePAnel/MultiBet/FirstChoice/Icon": {
+  "file": "heads.png",
+  "sprite": "heads.png",
+  "unity": "Assets/Images and Sprites/heads.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/MultiRoundChoicePAnel/MultiBet/SecondChoice": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/MultiRoundChoicePAnel/MultiBet/SecondChoice/Icon": {
+  "file": "heads.png",
+  "sprite": "heads.png",
+  "unity": "Assets/Images and Sprites/heads.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/MultiRoundChoicePAnel/MultiBet/ThirdChoice": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/MultiRoundSelectionPanel/MultiRoundChoicePAnel/MultiBet/ThirdChoice/Icon": {
+  "file": "heads.png",
+  "sprite": "heads.png",
+  "unity": "Assets/Images and Sprites/heads.png"
+ },
+ "/Canvas/Game Panel/NavPanel/Bal Panel": {
+  "file": "interface-design-coin-toss-mobile-1.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 1.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 1.png"
+ },
+ "/Canvas/Game Panel/NavPanel/Bal Panel/MenuButton": {
+  "file": "interface-design-coin-toss-mobile-6.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 6.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 6.png"
+ },
+ "/Canvas/Game Panel/NavPanel/Bal Panel/MenuButton/HamburgerMenu": {
+  "file": "interface-design-coin-toss-mobile-7.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 7.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 7.png"
+ },
+ "/Canvas/Game Panel/NavPanel/Bal Panel/line": {
+  "file": "interface-design-coin-toss-mobile-4.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 4.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 4.png"
+ },
+ "/Canvas/Game Panel/NavPanel/ChatBox": {
+  "file": "chatbubbles.png",
+  "sprite": "chatbubbles.png",
+  "unity": "Assets/Images and Sprites/chatbubbles.png"
+ },
+ "/Canvas/Game Panel/NavPanel/logo": {
+  "file": "interface-design-coin-toss-mobile-8.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 8.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 8.png"
+ },
+ "/Canvas/Game Panel/Network Error Display/Network Error Animation": {
+  "file": "free-flat-signal-up-3-icon.png",
+  "sprite": "Free Flat Signal Up 3 Icon.png",
+  "unity": "Assets/Images and Sprites/Free Flat Signal Up 3 Icon.png"
+ },
+ "/Canvas/Game Panel/Network Error Display/Network Error Animation/Image": {
+  "file": "exclamation.png",
+  "sprite": "exclamation.png",
+  "unity": "Assets/Images and Sprites/exclamation.png"
+ },
+ "/Canvas/Game Panel/Notification Panel": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/Placing Bet Display/Image": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/Placing Bet Display/Image/Holder/dot (0)": {
+  "file": "free-flat-arrow-2-s-icon-1.png",
+  "sprite": "Free Flat Arrow 2 S Icon 1.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 2 S Icon 1.png"
+ },
+ "/Canvas/Game Panel/Placing Bet Display/Image/Holder/dot (1)": {
+  "file": "free-flat-arrow-2-n-icon-1.png",
+  "sprite": "Free Flat Arrow 2 N Icon 1.png",
+  "unity": "Assets/Images and Sprites/Free Flat Arrow 2 N Icon 1.png"
+ },
+ "/Canvas/Game Panel/Unexpected Error Display/Button": {
+  "file": "gui-rounded-edge-button.png",
+  "sprite": "GUI Rounded Edge Button.png",
+  "unity": "Assets/Images and Sprites/GUI Rounded Edge Button.png"
+ },
+ "/Canvas/Game Panel/Unexpected Error Display/Network Error Animation": {
+  "file": "exclamation.png",
+  "sprite": "exclamation.png",
+  "unity": "Assets/Images and Sprites/exclamation.png"
+ },
+ "/Canvas/PortraitOrientationWarning/Image": {
+  "file": "icons8-rotate-phone-64.png",
+  "sprite": "icons8-rotate-phone-64.png",
+  "unity": "Assets/Prefabs/Orientation/icons8-rotate-phone-64.png"
+ },
+ "/Canvas/background": {
+  "file": "interface-design-coin-toss-mobile-19.png",
+  "sprite": "Interface Design - Coin & Toss - mobile - 19.png",
+  "unity": "Assets/Interface Design - Coin & Toss - Asset/Interface Design - Coin & Toss - mobile - 19.png"
+ }
+}

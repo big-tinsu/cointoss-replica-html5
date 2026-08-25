@@ -348,6 +348,33 @@ export class GameEngine {
     this.set({ stake: value, stakeText: String(value) });
   }
 
+  /**
+   * `Addition Button` / `Subtraction Button` — the +/- stepper pair beside
+   * the stake field. Steps by one currency unit and clamps to
+   * [`minimum`, `maximum`], notifying on a clamp the same way `addChip`
+   * does. `addChip` is add-only (its quick-bet chips have no decrease
+   * counterpart), so the steppers are the only way to walk the stake DOWN.
+   */
+  stepStake(delta: number): void {
+    if (!this.canEditStake()) return;
+    const { stake, minimum, maximum } = this.snapshot;
+    const next = round2(stake + delta);
+    if (next > maximum) {
+      this.notify("Cannot exceed max limit", true);
+      saveStake(maximum);
+      this.set({ stake: maximum, stakeText: String(maximum) });
+      return;
+    }
+    if (next < minimum) {
+      this.notify("Cannot go below min limit", true);
+      saveStake(minimum);
+      this.set({ stake: minimum, stakeText: String(minimum) });
+      return;
+    }
+    saveStake(next);
+    this.set({ stake: next, stakeText: String(next) });
+  }
+
   // ── bet placement (UIManager.SelectChoice -> ConfirmBet -> GameManager.
   // OnPlayerBet -> RelayBetToBE -> GetResults, spec §1 steps 7-9) ────────
   async chooseAndBet(choice: PlayerSelection): Promise<void> {

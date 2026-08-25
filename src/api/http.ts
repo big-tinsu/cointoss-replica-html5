@@ -40,18 +40,26 @@ export async function getJson<T>(url: string, headers?: Record<string, string>):
   return (await res.json()) as T;
 }
 
-export async function postForm<T>(
+/**
+ * POST a JSON body.
+ *
+ * Every POST in this client sends `application/json`, not form encoding:
+ * the payloads are a flat set of string fields (`url`, `data`, `token`), and
+ * a form body forced each one through URL escaping — which matters because
+ * the values are base64/hex ciphertext, where `+` and `=` are significant and
+ * round-trip badly through form decoding on some backends.
+ */
+export async function postJson<T>(
   url: string,
   fields: Record<string, string>,
   headers?: Record<string, string>,
 ): Promise<T> {
-  const body = new URLSearchParams(fields);
   let res: Response;
   try {
     res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", ...headers },
-      body,
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...headers },
+      body: JSON.stringify(fields),
     });
   } catch {
     throw new ApiError(CONNECTION_ERROR_MESSAGE, true);

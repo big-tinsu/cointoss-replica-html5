@@ -15,7 +15,7 @@ export function OrientationOverlay() {
   if (!mismatch) return null;
   return (
     <>
-      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: "rgba(0, 0, 0, 0.5843)" }} />
+      <div className="scrim" style={{ background: "rgba(0, 0, 0, 0.5843)" }} />
       <div className="node orientation-icon" style={{ left: ORIENTATION.icon.x, top: ORIENTATION.icon.y, width: ORIENTATION.icon.w, height: ORIENTATION.icon.h }}>
         <Spr src={img("icons8-rotate-phone-64")} rect={{ x: 0, y: 0, w: ORIENTATION.icon.w, h: ORIENTATION.icon.h }} />
       </div>

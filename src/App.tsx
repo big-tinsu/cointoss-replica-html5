@@ -53,7 +53,7 @@ export default function App() {
 }
 
 function Game() {
-  const { canvas, BACKDROP } = useDesign();
+  const { canvas, BACKDROP, SCENE, LAYOUT } = useDesign();
   const { state, actions } = useGameSession();
   const { boot: bootLanguage } = useLanguage();
 
@@ -92,9 +92,26 @@ function Game() {
 
         {state.phase === "ready" && (
           <>
-            {/* z 2 — `Game Panel`. */}
+            {/* z 2 — `Game Panel`.
+                Its children are laid out in a 1512x2688 bleed box, so the whole
+                subtree is recentred on the canvas once here (`LAYOUT.gameD*`)
+                rather than by editing each rect. Only the horizontal half of
+                that recentre had been applied, which left every element in
+                here — the header most visibly — 162.66px too low on Mobile.
+                Desktop's offset is (0,0). The Canvas-level siblings below
+                (Bet History / Help / orientation) are NOT in this layer. */}
+            <div
+              className="node"
+              style={{
+                left: 0,
+                top: 0,
+                width: "100%",
+                height: "100%",
+                transform: `translate(${LAYOUT.gameDx}px, ${LAYOUT.gameDy}px)`,
+              }}
+            >
             <TopBar currency={state.currency} balance={state.balance} onMenu={() => setMenuVisible(true)} />
-            <Ticker currency={state.currency} />
+            {SCENE.showTicker && <Ticker currency={state.currency} />}
 
             <CoinStage anim={computeAnim(state.busy, state.isFlipping, state.flipOutcome)} />
 
@@ -110,6 +127,7 @@ function Game() {
                 onStakeText={actions.setStakeText}
                 onCommitStake={actions.commitStake}
                 onAddChip={actions.addChip}
+              onStepStake={actions.stepStake}
                 onChoose={actions.chooseAndBet}
               />
             )}
@@ -144,6 +162,8 @@ function Game() {
                 actions.refreshBetHistory(1);
               }}
             />
+
+            </div>
 
             {/* z 3-6 — top-level Canvas siblings of `Game Panel`. */}
             <BetHistoryPanel

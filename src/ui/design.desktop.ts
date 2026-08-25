@@ -8,6 +8,17 @@ export const CANVAS = {
   mode: "Expand",
 } as const;
 
+export const LAYOUT = {
+    gameDx: 0,
+    gameDy: 0,
+    note: "The Desktop scene's Game Panel children are already canvas-absolute (UserBalance sits at y=36 of 1080), so no recentre is needed here. The Mobile scene needs -162.66 vertically - see design.ts.",
+  } as const;
+
+export const SCENE = {
+    showTicker: false,
+    note: "NavPanel/Ticker exists only in the Mobile scene (and is inactive even there - a decorative 4px hairline at alpha 0.2). The Desktop scene has no Ticker node and the live desktop build shows no marquee, so the fabricated Ticker.cs feed is not drawn here; unanchored, it landed mid-screen across the coin.",
+  } as const;
+
 export const BACKDROP = {
     rect: {"x": 0, "y": 0, "w": 1920, "h": 1080},
     sprite: "backdrop-desktop",
@@ -109,10 +120,12 @@ export const INSUFFICIENT = {
   } as const;
 
 export const ERROR = {
-    icon: {"x": 896, "y": 80, "w": 128, "h": 128},
-    header: {"x": 560, "y": 230, "w": 800, "h": 64, "fs": 42},
-    body: {"x": 560, "y": 300, "w": 800, "h": 80, "fs": 30},
-    button: {"x": 810, "y": 300, "w": 300, "h": 90, "fs": 32},
+    scrim: { x: 0, y: 0, w: 1920, h: 1080 },
+    icon: { x: 896, y: 444, w: 128, h: 128 },
+    header: { x: 510, y: 572, w: 900, h: 64, fs: 42 },
+    body: { x: 510, y: 644, w: 900, h: 128, fs: 36 },
+    button: { x: 704, y: 932, w: 512, h: 84, fs: 36 },
+    hint: { x: 704, y: 868, w: 512, h: 64, fs: 28 },
   } as const;
 
 export const TOAST = {

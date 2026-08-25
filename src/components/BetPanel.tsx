@@ -22,6 +22,9 @@ import { useDesign } from "../ui/DesignContext";
  * `Addition Button`/`Subtraction Button` stepper pair being the only way to
  * decrease stake.
  */
+/** `Pays {n}x` on both choice buttons — an even-money coin toss. */
+const PAYOUT_MULTIPLIER = 2;
+
 export function BetPanel({
   currency,
   minimum,
@@ -33,6 +36,7 @@ export function BetPanel({
   onStakeText,
   onCommitStake,
   onAddChip,
+  onStepStake,
   onChoose,
 }: {
   currency: string;
@@ -45,6 +49,7 @@ export function BetPanel({
   onStakeText: (raw: string) => void;
   onCommitStake: () => void;
   onAddChip: (amount: number) => void;
+  onStepStake: (delta: number) => void;
   onChoose: (choice: PlayerSelection) => void;
 }) {
   const { CHIPS, CHOICE, STAKE_FIELD } = useDesign();
@@ -80,17 +85,22 @@ export function BetPanel({
       </button>
 
       {/* `Addition Button` / `Subtraction Button` — frame mobile-11 plate +
-       * mobile-13/mobile-12 glyphs at their own inset rects. Rendered for
-       * pixel fidelity; the game-logic layer (not touched by this pass)
-       * exposes only `addChip(amount)` for a fixed quick-bet value and the
-       * manual keypad entry — no generic +/-1 stepper action exists (see
-       * README, "Only '+value' quick-bet chips exist"), so these stay
-       * visually present but inert rather than inventing a new increment
-       * semantics into the game engine. */}
-      <div
-        className="btn"
-        style={{ left: STAKE_FIELD.increase.x, top: STAKE_FIELD.increase.y, width: STAKE_FIELD.increase.w, height: STAKE_FIELD.increase.h }}
-        aria-hidden="true"
+       * mobile-13/mobile-12 glyphs at their own inset rects. These used to be
+       * inert `aria-hidden` divs: the art was placed but no handler was ever
+       * attached, because `addChip` is add-only and no stepper action existed
+       * on the engine. They now drive `stepStake`, which walks the stake by
+       * one unit and clamps to [minimum, maximum] — the only way to decrease
+       * it, since the quick-bet chips are add-only. */}
+      <button
+        type="button"
+        className="btn press"
+        aria-label="Increase stake"
+        disabled={busy}
+        onClick={() => {
+          playClick();
+          onStepStake(1);
+        }}
+        style={{ left: STAKE_FIELD.increase.x, top: STAKE_FIELD.increase.y, width: STAKE_FIELD.increase.w, height: STAKE_FIELD.increase.h, border: "none", padding: 0, background: "transparent" }}
       >
         <Spr src={ui("stepper-plate")} rect={{ x: 0, y: 0, w: STAKE_FIELD.increase.w, h: STAKE_FIELD.increase.h }} />
         <Spr
@@ -102,11 +112,17 @@ export function BetPanel({
             h: STAKE_FIELD.increaseGlyph.h,
           }}
         />
-      </div>
-      <div
-        className="btn"
-        style={{ left: STAKE_FIELD.decrease.x, top: STAKE_FIELD.decrease.y, width: STAKE_FIELD.decrease.w, height: STAKE_FIELD.decrease.h }}
-        aria-hidden="true"
+      </button>
+      <button
+        type="button"
+        className="btn press"
+        aria-label="Decrease stake"
+        disabled={busy}
+        onClick={() => {
+          playClick();
+          onStepStake(-1);
+        }}
+        style={{ left: STAKE_FIELD.decrease.x, top: STAKE_FIELD.decrease.y, width: STAKE_FIELD.decrease.w, height: STAKE_FIELD.decrease.h, border: "none", padding: 0, background: "transparent" }}
       >
         <Spr src={ui("stepper-plate")} rect={{ x: 0, y: 0, w: STAKE_FIELD.decrease.w, h: STAKE_FIELD.decrease.h }} />
         <Spr
@@ -118,7 +134,7 @@ export function BetPanel({
             h: STAKE_FIELD.decreaseGlyph.h,
           }}
         />
-      </div>
+      </button>
 
       <Tmp rect={{ x: STAKE_FIELD.minimum.x, y: STAKE_FIELD.minimum.y, w: STAKE_FIELD.minimum.w, h: STAKE_FIELD.minimum.h }} fontSize={STAKE_FIELD.minimum.fs} align="left">
         {t("min")}: {currency} {minimum.toFixed(2)}
@@ -153,7 +169,10 @@ export function BetPanel({
         );
       })}
 
-      {/* `ChoicePanel/Heads` + `ChoicePanel/Tails` — frame mobile-15/16. */}
+      {/* `ChoicePanel/Heads` + `ChoicePanel/Tails` — frame mobile-15/16. The
+          face labels are the scene's own literals (`HEAD`/`TAIL`, bold fs40),
+          and the payout line is formatted from the multiplier rather than the
+          scene's design-time `Pays 2x` string, matching the live build. */}
       <button
         type="button"
         className="btn press"
@@ -165,12 +184,7 @@ export function BetPanel({
         }}
       >
         <Spr src={ui("heads-button")} rect={{ x: 0, y: 0, w: CHOICE.w, h: CHOICE.h }} />
-        <Tmp rect={{ x: 0, y: CHOICE.h * CHOICE.payDy - 24, w: CHOICE.w, h: 48 }} fontSize={CHOICE.payFs} color={C.white}>
-          {t("Pays 2x")}
-        </Tmp>
-        <Tmp rect={{ x: 0, y: CHOICE.h * CHOICE.labelDy - 50, w: CHOICE.w, h: 100 }} fontSize={CHOICE.labelFs} color={C.white} bold>
-          {t("Heads")}
-        </Tmp>
+        <ChoiceLabel label={t("HEAD")} pays={`${t("Pays")} ${PAYOUT_MULTIPLIER.toFixed(2)}x`} CHOICE={CHOICE} />
       </button>
       <button
         type="button"
@@ -183,12 +197,7 @@ export function BetPanel({
         }}
       >
         <Spr src={ui("tails-button")} rect={{ x: 0, y: 0, w: CHOICE.w, h: CHOICE.h }} />
-        <Tmp rect={{ x: 0, y: CHOICE.h * CHOICE.payDy - 24, w: CHOICE.w, h: 48 }} fontSize={CHOICE.payFs} color={C.white}>
-          {t("Pays 2x")}
-        </Tmp>
-        <Tmp rect={{ x: 0, y: CHOICE.h * CHOICE.labelDy - 50, w: CHOICE.w, h: 100 }} fontSize={CHOICE.labelFs} color={C.white} bold>
-          {t("Tails")}
-        </Tmp>
+        <ChoiceLabel label={t("TAIL")} pays={`${t("Pays")} ${PAYOUT_MULTIPLIER.toFixed(2)}x`} CHOICE={CHOICE} />
       </button>
 
       {keypadOpen && (
@@ -204,5 +213,59 @@ export function BetPanel({
         />
       )}
     </>
+  );
+}
+
+/**
+ * The face + payout lines on a choice button, as one centred stack.
+ *
+ * The scene stacks these as two overlapping boxes: the label is centred in an
+ * 84px box and the payout sits in a 42px box nested at its BOTTOM, so their
+ * text centres end up only ~21px apart while the label itself is 40px tall.
+ * Reproduced literally, "HEAD" and "Pays 2.00x" collide and the pair reads as
+ * off-centre. A flex column centres the group as a whole and guarantees the
+ * two lines never overlap at any font size.
+ *
+ * The two scenes disagree on ORDER — Mobile puts the payout ABOVE the face
+ * (`payDy` 0.24 against `labelDy` 0.56), Desktop below (0.72) — so the order
+ * is derived from the tokens rather than hardcoded.
+ */
+function ChoiceLabel({
+  label,
+  pays,
+  CHOICE,
+}: {
+  label: string;
+  pays: string;
+  CHOICE: { labelFs: number; payFs: number; labelDy: number; payDy: number };
+}) {
+  const face = (
+    <span key="label" style={{ fontSize: CHOICE.labelFs, fontWeight: 700, lineHeight: 1.05 }}>
+      {label}
+    </span>
+  );
+  const payout = (
+    <span key="pays" style={{ fontSize: CHOICE.payFs, lineHeight: 1.05 }}>
+      {pays}
+    </span>
+  );
+  return (
+    <span
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: Math.round(CHOICE.payFs * 0.35),
+        color: "#FFFFFF",
+        textAlign: "center",
+        whiteSpace: "nowrap",
+        pointerEvents: "none",
+      }}
+    >
+      {CHOICE.payDy < CHOICE.labelDy ? [payout, face] : [face, payout]}
+    </span>
   );
 }

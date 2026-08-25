@@ -17,6 +17,8 @@ import type { CanvasSpec } from "./Stage";
 export type DesignTokens = {
   canvas: CanvasSpec;
   isDesktop: boolean;
+  SCENE: typeof mobile.SCENE;
+  LAYOUT: typeof mobile.LAYOUT;
   BACKDROP: typeof mobile.BACKDROP;
   NAV: typeof mobile.NAV;
   COIN_VIEWPORT: typeof mobile.COIN_VIEWPORT;
@@ -41,6 +43,8 @@ function bundle(isDesktop: boolean): DesignTokens {
   return {
     canvas: (isDesktop ? desktop.CANVAS : mobile.CANVAS_MOBILE) as CanvasSpec,
     isDesktop,
+    SCENE: s.SCENE,
+    LAYOUT: s.LAYOUT,
     BACKDROP: s.BACKDROP,
     NAV: s.NAV,
     COIN_VIEWPORT: s.COIN_VIEWPORT,

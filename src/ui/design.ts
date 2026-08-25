@@ -27,6 +27,29 @@ export const DESIGN_H = 2340;
  * mobile-19; the Desktop scene uses a different, landscape-authored sprite
  * (`Coin & Toss - desktop - 1.png`), so the sprite name travels with the rect
  * rather than being hardcoded at the call site. */
+export const SCENE = { showTicker: true } as const;
+
+/**
+ * Vertical recentre for the `Game Panel` subtree.
+ *
+ * `Canvas/Game Panel` serialises as a 100x100 stub at the canvas centre, but
+ * its children are laid out in a 1512x2688 box anchored at (-216, -11.34) —
+ * the "Interactive Pane bleed". Recentring that box on the 1080x2340 canvas
+ * gives dx = ((1080-1512)/2) - (-216) = 0 (which is why the horizontal split
+ * already looked right) and dy = ((2340-2688)/2) - (-11.34) = -162.66.
+ *
+ * Only the horizontal half was ever applied, so every Game Panel element sat
+ * 162.66px too low: `NavPanel` rendered at y=186.66 instead of a clean y=24,
+ * which is why the header floated well below the top of the screen instead of
+ * sitting against it. Applied once to the game layer so each rect below stays
+ * the scene's own verbatim number.
+ *
+ * `Bet History`, `About` (Help), `PortraitOrientationWarning`, `background`
+ * and the boot `ErrorPanel` hang off `Canvas` directly, already fill
+ * 1080x2340, and are NOT in this layer.
+ */
+export const LAYOUT = { gameDx: 0, gameDy: -162.66 } as const;
+
 export const BACKDROP = {
   rect: { x: 0, y: 0, w: 1080, h: 2340 },
   sprite: "backdrop",
@@ -64,6 +87,8 @@ export const C = {
   soundBadge: "#1E88A8",
   /** `MenuPanel/Panel` scrim. */
   menuPurple: "#2F1D52",
+  /** `MenuPanel`'s own full-screen wash, behind the drawer — #000000 @ 39.2%. */
+  menuScrimBlack: "rgba(0, 0, 0, 0.392)",
   /** `Rebet` (ResultsPanel). */
   rebetTeal: "#319298",
   /** `Newround`. */
@@ -72,6 +97,10 @@ export const C = {
   retryTeal: "#02414C",
   /** `Network Error Animation` / `Unexpected Error Display`'s exclamation tint. */
   errorRed: "#CC1707",
+  /** `Unexpected Error Display`'s own Image — #480000 at alpha 0.502. */
+  errorScrim: "rgba(72, 0, 0, 0.502)",
+  /** `Button/Text (TMP) (1)` — the "if the issue persists" hint. */
+  errorHintYellow: "#FFFF00",
   /** `Error Header` text. */
   errorHeaderRed: "#FF0000",
   /** `Button` (Relaunch), Unexpected Error Display. */
@@ -308,6 +337,9 @@ export const CASHOUT_RETRY = {
  */
 export const MENU = {
   scrimAlpha: 0.6314,
+  /** `MenuPanel/Panel` — the drawer plate. On Mobile it is near-full-bleed;
+   * the Desktop scene makes it a 576-wide left drawer. */
+  drawer: { x: -66, y: -11.34, w: 1058.4, h: 2688 },
   close: { x: 812.4, y: 168.66, w: 128, h: 128 },
   closeGlyph: { x: 844.4, y: 200.66, w: 64, h: 64 },
   rowX: -66,
@@ -345,10 +377,17 @@ export const INSUFFICIENT = {
  * UI, so this — the actually-designed error screen — is what's ported.)
  */
 export const ERROR = {
+  /** `Unexpected Error Display` itself — the #480000 @ 50.2% wash. Sized from
+   * the scene rather than hardcoded: a fixed 1080-wide box covered only 56%
+   * of the 1920-wide Desktop stage and left the rest untinted. */
+  scrim: { x: -216, y: -11.34, w: 1512, h: 2688 },
   icon: { x: 444, y: 507.66, w: 192, h: 192 },
   header: { x: 90, y: 725.66, w: 900, h: 84, fs: 53.8 },
   body: { x: 90, y: 827.66, w: 900, h: 180, fs: 54 },
   button: { x: 120, y: 1599.66, w: 840, h: 128, fs: 54 },
+  /** `Button/Text (TMP) (1)` — the yellow "if the issue persists" line, which
+   * sits ABOVE the button. */
+  hint: { x: 120, y: 1471.66, w: 840, h: 128, fs: 48 },
 } as const;
 
 /** `Notification Panel` — a red toast, `GUI Rounded Edge Button.png` @

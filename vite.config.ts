@@ -9,7 +9,12 @@ import react from "@vitejs/plugin-react";
 // (iframe/webview pointed at a partner-hosted page) resolves its own backend.
 // Overridable so this project's dev servers can run alongside the sibling
 // replicas instead of colliding with them.
-const MOCK_SERVER = process.env.VITE_MOCK_SERVER || `http://localhost:${process.env.MOCK_PORT || 8789}`;
+// MUST match server/index.js's own default (8787). These had drifted apart —
+// the proxy defaulted to 8789 while the mock listened on 8787 — so a plain
+// `npm run dev` sent every /api and /lang request to a dead port and the proxy
+// answered 500, which surfaced in-game as the "HTTP/1.1 400 Bad Request"
+// fatal-error screen.
+const MOCK_SERVER = process.env.VITE_MOCK_SERVER || `http://localhost:${process.env.MOCK_PORT || 8787}`;
 
 export default defineConfig({
   plugins: [react()],

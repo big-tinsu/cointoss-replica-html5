@@ -41,7 +41,7 @@ export function HelpModal({
 
   return (
     <div className="modal-fade">
-      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: C.historyPurple }} />
+      <div className="scrim" style={{ background: C.historyPurple }} />
       <Tmp rect={HELP.header} fontSize={HELP.header.fs} color={C.white} bold>
         {t("Welcome to Cointoss")}
       </Tmp>
@@ -58,7 +58,15 @@ export function HelpModal({
         <Spr src={img("arrow-1-w")} rect={{ x: 0, y: 0, w: HELP.back.w, h: HELP.back.h }} />
       </button>
 
-      <div className="node scroll-y" style={{ left: 0, top: HELP.contentTop, width: 1080, height: 2340 - HELP.contentTop }}>
+      <div
+        className="node scroll-y"
+        style={{
+          left: 0,
+          top: HELP.contentTop,
+          width: "var(--canvas-w, 1080px)",
+          height: `calc(var(--canvas-h, 2340px) - ${HELP.contentTop}px)`,
+        }}
+      >
         {lines.map((line, i) => (
           <p
             key={i}

@@ -1,7 +1,7 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { C, R, img } from "../ui/design";
-import { Spr, Tmp } from "../ui/Sprite";
+import { C, R } from "../ui/design";
+import { Tmp } from "../ui/Sprite";
 
 import { useDesign } from "../ui/DesignContext";
 /** `Insufficient Funds Panel` (`VirtualCashManager.CheckBalance`, spec §3)
@@ -12,8 +12,18 @@ export function InsufficientFundsModal({ visible, onClose }: { visible: boolean;
   if (!visible) return null;
   return (
     <div className="modal-fade">
-      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: "rgba(0, 0, 0, 0.29)" }} />
-      <Spr src={img("gui-rounded-edge-button")} rect={INSUFFICIENT.card} style={{ borderRadius: R.insufficientCard }} />
+      <div className="scrim" style={{ background: "rgba(0, 0, 0, 0.29)" }} />
+      <div
+        style={{
+          position: "absolute",
+          left: INSUFFICIENT.card.x,
+          top: INSUFFICIENT.card.y,
+          width: INSUFFICIENT.card.w,
+          height: INSUFFICIENT.card.h,
+          background: C.white,
+          borderRadius: R.insufficientCard,
+        }}
+      />
       <Tmp rect={INSUFFICIENT.header} fontSize={INSUFFICIENT.header.fs} color={C.insufficientRed} bold>
         {t("Insufficient Funds")}
       </Tmp>

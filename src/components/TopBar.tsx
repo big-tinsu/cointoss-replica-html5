@@ -21,7 +21,7 @@ export function TopBar({
   balance: number;
   onMenu: () => void;
 }) {
-  const { NAV } = useDesign();
+  const { NAV, isDesktop } = useDesign();
   const { t } = useLanguage();
   // `Currency` (the "USD" code) is its own sibling TMP node right before
   // this one — the value here is the numeric balance only, not re-prefixed.
@@ -59,10 +59,11 @@ export function TopBar({
         {valueText}
       </span>
       <Spr src={ui("bal-divider")} rect={NAV.divider} />
-      {/* `bal (1)` — a static design-time label, kept literally (no live
-       * device-mode concept in this port). */}
+      {/* `UserBalance/mode` — the scene's own literal, which differs per
+       * scene: 'PHONE\nMODE' in the Mobile scene, 'DESKTOP\nMODE' in the
+       * Desktop one. It was pinned to the Mobile string. */}
       <Tmp rect={NAV.mode} fontSize={NAV.mode.fs} color={C.white}>
-        {"PHONE\nMODE"}
+        {isDesktop ? "DESKTOP\nMODE" : "PHONE\nMODE"}
       </Tmp>
 
       <button

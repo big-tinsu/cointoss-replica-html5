@@ -112,6 +112,23 @@ input:focus {
   position: absolute;
 }
 
+/* A full-screen wash / overlay backdrop.
+ *
+ * These were each written as a fixed `1080 x 2340` box — the MOBILE canvas —
+ * so on the 1920x1080 Desktop stage every one tinted only the left
+ * 1080/1920 = 56% of the width and left a hard vertical seam down the middle
+ * of the screen. Under Expand the visible canvas is also WIDER than the
+ * reference box `.stage` is sized to, so even `100%` would come up short:
+ * this covers the visible canvas reported by `Stage.tsx`, centred. */
+.scrim {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--canvas-w, 1080px);
+  height: var(--canvas-h, 2340px);
+  transform: translate(-50%, -50%);
+}
+
 .btn {
   display: block;
 }
@@ -172,12 +189,26 @@ input:focus {
  * `head`/`tail` states; `side` swaps to the dedicated edge sprite with a
  * settling wobble since there's no third flip-card face for a coin's edge. */
 .coin-viewport {
-  overflow: hidden;
+  /* NOT clipped: the camera clears to transparent and the coin's glow spills
+     past the 700x700 render-texture rect. `overflow: hidden` here combined
+     with a full-screen backdrop image is what produced the hard-edged
+     rectangle over the scene art. */
   perspective: 1400px;
 }
-.coin-viewport-bg {
-  object-fit: cover;
-  opacity: 0.6;
+/* Stand-in for `Square`, the 3D SpriteRenderer inside the render texture that
+   this extraction cannot resolve (see CoinStage). A radial wash, so it has no
+   edge to give away a rectangle, unlike the full-screen PNG that was here. */
+.coin-viewport-glow {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 52%,
+    rgba(255, 214, 156, 0.34) 0%,
+    rgba(214, 138, 74, 0.20) 34%,
+    rgba(90, 46, 120, 0.10) 58%,
+    rgba(0, 0, 0, 0) 72%
+  );
 }
 .coin-flipper {
   position: absolute;

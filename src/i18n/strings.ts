@@ -78,10 +78,14 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   Head: "Head",
   head: "head",
   Heads: "Heads",
+  /** `ChoicePanel/Heads/Text (TMP)` literal — the button face is uppercase. */
+  HEAD: "HEAD",
   heads: "heads",
   Tail: "Tail",
   tail: "tail",
   Tails: "Tails",
+  /** `ChoicePanel/Tails/Text (TMP)` literal. */
+  TAIL: "TAIL",
   tails: "tails",
   Side: "Side",
   side: "side",

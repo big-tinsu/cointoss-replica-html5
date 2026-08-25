@@ -71,7 +71,7 @@ export function BetHistoryPanel({
 
   return (
     <div className="modal-fade">
-      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: C.historyPurple }} />
+      <div className="scrim" style={{ background: C.historyPurple }} />
 
       <Tmp rect={BET_HISTORY.header} fontSize={BET_HISTORY.header.fs} color={C.white} bold>
         {t("Bet History")}

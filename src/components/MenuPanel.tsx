@@ -76,7 +76,23 @@ export function MenuPanel({
 
   return (
     <div className="modal-fade">
-      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: C.menuPurple, opacity: MENU.scrimAlpha }} />
+      {/* Two layers, matching the scene: `MenuPanel`'s own black wash over the
+          game, then `MenuPanel/Panel` — the drawer plate. Previously a SINGLE
+          full-screen wash was drawn in the drawer's purple at its alpha, so
+          the drawer never existed as its own surface and the game showed
+          straight through the menu. The plate is opaque here (the scene has it
+          at 61%) so the drawer reads as a solid surface. */}
+      <div className="scrim" style={{ background: C.menuScrimBlack }} />
+      <div
+        className="node"
+        style={{
+          left: MENU.drawer.x,
+          top: MENU.drawer.y,
+          width: MENU.drawer.w,
+          height: MENU.drawer.h,
+          background: C.menuPurple,
+        }}
+      />
 
       <button
         type="button"

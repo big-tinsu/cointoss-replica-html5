@@ -22,7 +22,7 @@ export function CashoutRetryModal({
   if (!visible) return null;
   return (
     <div className="modal-fade">
-      <div className="node" style={{ left: 0, top: 0, width: 1080, height: 2340, background: "rgba(2, 8, 14, 0.7)" }} />
+      <div className="scrim" style={{ background: "rgba(2, 8, 14, 0.7)" }} />
       <Tmp rect={CASHOUT_RETRY.message} fontSize={CASHOUT_RETRY.message.fs} color={C.white}>
         {t(message)}
       </Tmp>

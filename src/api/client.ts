@@ -5,7 +5,7 @@
  * *when* to call them, that's `src/state/gameEngine.ts`.
  */
 import { decrypt, encrypt } from "./crypto";
-import { getJson, postForm } from "./http";
+import { getJson, postJson } from "./http";
 import type {
   AggregatorData,
   AuthData,
@@ -43,7 +43,7 @@ export interface BootResult {
  * Penaldo/Keno's GET + `clientId` header (spec §4). */
 export async function requestToken(pageHref: string): Promise<BootResult> {
   const encryptedHref = await encrypt(pageHref);
-  const res = await postForm<ServerResponse>(resolveTokenUrl(), { url: encryptedHref });
+  const res = await postJson<ServerResponse>(resolveTokenUrl(), { url: encryptedHref });
 
   if (!res.data) {
     throw new Error("Unable to retrieve token. Reload the game or report issue.");
@@ -82,7 +82,7 @@ export async function authenticate(
   aggregatorDataCipher: string,
   initialRound: boolean,
 ): Promise<LoginData> {
-  const res = await postForm<ServerResponse>(
+  const res = await postJson<ServerResponse>(
     `${baseUrl}bet-placed/agg-authenticate`,
     { data: aggregatorDataCipher, gameType: GAME_TYPE, initialRound: String(initialRound) },
     { Authorization: `Bearer ${token}` },
@@ -109,7 +109,7 @@ export async function placeBet(
     selection,
   };
   const encrypted = await encrypt(JSON.stringify(body));
-  await postForm<ServerResponse>(
+  await postJson<ServerResponse>(
     `${baseUrl}bet-placed/agg-place-bet`,
     { data: encrypted },
     { Authorization: `Bearer ${token}` },
@@ -127,7 +127,7 @@ export async function getResults(
   selection: PlayerSelection,
 ): Promise<BetData> {
   const encrypted = await encrypt(JSON.stringify({ sessionId, selection }));
-  const res = await postForm<ServerResponse>(
+  const res = await postJson<ServerResponse>(
     `${baseUrl}bet-placed/agg-actions`,
     { data: encrypted },
     { Authorization: `Bearer ${token}` },
@@ -141,7 +141,7 @@ export async function getResults(
  * (see README) — only ever called once, automatically, from boot. */
 export async function manualActions(baseUrl: string, token: string, sessionId: string): Promise<void> {
   const encrypted = await encrypt(JSON.stringify({ sessionId }));
-  await postForm<ServerResponse>(
+  await postJson<ServerResponse>(
     `${baseUrl}bet-placed/agg-manual-actions`,
     { data: encrypted },
     { Authorization: `Bearer ${token}` },

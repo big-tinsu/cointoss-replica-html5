@@ -9,6 +9,7 @@ export interface GameSession {
     setStakeText: (raw: string) => void;
     commitStake: () => void;
     addChip: (amount: number) => void;
+    stepStake: (delta: number) => void;
     rebet: () => void;
     newRound: () => void;
     dismissInsufficientFunds: () => void;
@@ -38,6 +39,7 @@ export function useGameSession(): GameSession {
     setStakeText: (raw) => engine.setStakeText(raw),
     commitStake: () => engine.commitStake(),
     addChip: (amount) => engine.addChip(amount),
+    stepStake: (delta) => engine.stepStake(delta),
     rebet: () => engine.rebet(),
     newRound: () => engine.newRound(),
     dismissInsufficientFunds: () => engine.dismissInsufficientFunds(),
