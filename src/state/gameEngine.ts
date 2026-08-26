@@ -37,8 +37,14 @@ import { sanitizeStakeInput } from "./format";
 import { generateQuickBetValues } from "./quickBet";
 
 const DEFAULT_MIN_FALLBACK = 1;
-const FLIP_DURATION_MS = 5000; // GameManager.WaitForOutcome — WaitForSeconds(5), flat, no callback (spec §1 step 10)
-const NOTIFICATION_MS = 2000; // GameManager.Notify (~2s per toast, spec end of §1)
+/**
+ * Round pacing. The Unity builds hold every beat for two seconds or more;
+ * on a phone that reads as lag rather than suspense, so the port keeps the
+ * same beats and shortens them — roughly a second of animation, then the
+ * outcome, with its toast on screen for a second.
+ */
+const FLIP_DURATION_MS = 1000; // GameManager.WaitForOutcome — WaitForSeconds(5), flat, no callback (spec §1 step 10); 5s of coin was the single slowest beat in the family
+const NOTIFICATION_MS = 1000; // GameManager.Notify (~2s per toast, spec end of §1), halved — see note
 const QUICK_BET_BUTTON_COUNT = 5;
 
 export type Phase = "booting" | "fatal-error" | "ready";
@@ -422,7 +428,6 @@ export class GameEngine {
       busy: false,
       lastChoice: choice,
     });
-    this.notify("Bet placed successfully", false);
     void this.runFlip(choice, event);
   }
 

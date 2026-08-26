@@ -1,0 +1,153 @@
+/* Shacks Evolution boot screen — identical in every *-replica-html5 game.
+ *
+ * Class names carry the `shacks-` prefix on purpose: several of these games
+ * already own a `.loading-screen` / `.loading-logo` rule in their index.css
+ * for the in-scene Unity loading panel, and this overlay must not inherit or
+ * fight with it. The overlay is `fixed` so it covers the design-space Stage
+ * in the games that mount it inside the canvas. */
+
+.shacks-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100svh;
+  cursor: pointer;
+  background-color: black;
+}
+
+.shacks-company-logo {
+  display: block;
+  width: 70vw;
+  max-width: 900px;
+  height: auto;
+  object-fit: contain;
+  animation: shacks-logo-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  .shacks-company-logo {
+    width: 88vw;
+    max-width: 88vw;
+  }
+}
+
+@keyframes shacks-logo-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.03);
+  }
+}
+
+.shacks-loading-bar {
+  width: 300px;
+  height: 6px;
+  background-color: #333;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+  margin-top: 4px;
+}
+
+@media (orientation: portrait) {
+  .shacks-loading-bar {
+    width: 220px;
+  }
+}
+
+.shacks-loading-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #00aaff, #00cfff);
+  border-radius: 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: width 150ms linear;
+}
+
+.shacks-loading-progress::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shacks-shimmer 1.5s infinite;
+}
+
+@keyframes shacks-shimmer {
+  0% {
+    left: -60%;
+  }
+  100% {
+    left: 120%;
+  }
+}
+
+.shacks-loading-message {
+  font-size: 11px;
+  margin: 0;
+  color: #00cfff;
+  text-shadow: 0 0 8px #00aaff;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: "Courier New", monospace;
+  min-height: 1.4em;
+  animation: shacks-text-flicker 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  .shacks-loading-message {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+}
+
+@keyframes shacks-text-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0.4;
+  }
+  94% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.6;
+  }
+  97% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shacks-company-logo,
+  .shacks-loading-message,
+  .shacks-loading-progress::after {
+    animation: none;
+  }
+}

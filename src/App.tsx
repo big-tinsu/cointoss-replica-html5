@@ -6,7 +6,6 @@ import { Stage } from "./ui/Stage";
 import { DesignProvider, useDesign } from "./ui/DesignContext";
 import { useResponsiveLayout } from "./hooks/useResponsiveLayout";
 import { ui } from "./ui/design";
-import { LoadingScreen } from "./components/LoadingScreen";
 import { ErrorScreen } from "./components/ErrorScreen";
 import { TopBar } from "./components/TopBar";
 import { CoinStage, type CoinAnim } from "./components/CoinStage";
@@ -21,6 +20,8 @@ import { MenuPanel } from "./components/MenuPanel";
 import { BetHistoryPanel } from "./components/BetHistoryPanel";
 import { OrientationOverlay } from "./components/OrientationOverlay";
 import { CustomizationProvider } from "./components/Customizable";
+import { ShacksLoadingScreen } from "./loading/ShacksLoadingScreen";
+import { useAssetPreload } from "./loading/useAssetPreload";
 
 function computeAnim(busy: boolean, isFlipping: boolean, flipOutcome: string | null): CoinAnim {
   if (isFlipping && flipOutcome) return flipOutcome as CoinAnim;
@@ -60,6 +61,10 @@ function Game() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [betHistoryVisible, setBetHistoryVisible] = useState(false);
 
+  // `Loading Display` stood in for the excluded `Loading Screen.unity`; the
+  // studio screen replaces it and additionally waits on the coin art.
+  const { progress, done: bootDone } = useAssetPreload(state.phase !== "booting");
+
   useEffect(() => {
     const { language } = getLaunchParams();
     void bootLanguage(language);
@@ -87,7 +92,7 @@ function Game() {
           loading="eager"
         />
 
-        {state.phase === "booting" && <LoadingScreen />}
+        {!bootDone && state.phase !== "fatal-error" && <ShacksLoadingScreen progress={progress} />}
         {state.phase === "fatal-error" && <ErrorScreen message={state.fatalError ?? ""} />}
 
         {state.phase === "ready" && (
