@@ -15,8 +15,7 @@ export const LAYOUT = {
   } as const;
 
 export const SCENE = {
-    showTicker: false,
-    note: "NavPanel/Ticker exists only in the Mobile scene (and is inactive even there - a decorative 4px hairline at alpha 0.2). The Desktop scene has no Ticker node and the live desktop build shows no marquee, so the fabricated Ticker.cs feed is not drawn here; unanchored, it landed mid-screen across the coin.",
+    note: "The fabricated Ticker.cs marquee has been removed from both scenes - see design.ts.",
   } as const;
 
 export const BACKDROP = {
@@ -171,22 +170,4 @@ export const HELP = {
     bodyW: 1664,
   } as const;
 
-export const KEYPAD = {
-    scrim: { x: 0, y: 0, w: 1920, h: 1080 },
-    body: { x: 672, y: 270, w: 576, h: 540 },
-    display: { x: 736, y: 324, w: 448, h: 81 },
-    input: { x: 740, y: 328, w: 440, h: 73 },
-    inputText: { x: 772, y: 336, w: 266, h: 57, fs: 36 },
-    backspace: { x: 1070, y: 328, w: 110, h: 73 },
-    backspaceGlyph: { x: 1101, y: 340.5, w: 48, h: 48, fs: 32 },
-    rowTops: [421.2, 491.4, 561.6, 631.8],
-    keyLefts: [736, 890.6667, 1045.3333],
-    keyW: 138.6667,
-    keyH: 54.2,
-    keyRowPadY: 8,
-    keyFs: 32,
-    save: { x: 736, y: 718, w: 448, h: 68, fs: 36 },
-    close: { x: 1190.4, y: 270, w: 57.6, h: 54, fs: 40 },
-    dot: {"x": 1110.67, "y": 662.9, "w": 8, "h": 8},
-  } as const;
 

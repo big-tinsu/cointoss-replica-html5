@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import { img } from "../ui/design";
+import { FLIP_DURATION_MS } from "../state/gameEngine";
 
 import { useDesign } from "../ui/DesignContext";
 
@@ -31,7 +33,17 @@ export function CoinStage({ anim }: { anim: CoinAnim }) {
   return (
     <div
       className="node coin-viewport"
-      style={{ left: COIN_VIEWPORT.x, top: COIN_VIEWPORT.y, width: COIN_VIEWPORT.w, height: COIN_VIEWPORT.h }}
+      style={
+        {
+          left: COIN_VIEWPORT.x,
+          top: COIN_VIEWPORT.y,
+          width: COIN_VIEWPORT.w,
+          height: COIN_VIEWPORT.h,
+          // Keeps every coin animation exactly as long as the engine's own wait
+          // before it reveals the result — see FLIP_DURATION_MS.
+          "--flip-ms": `${FLIP_DURATION_MS}ms`,
+        } as CSSProperties
+      }
     >
       <span className="coin-viewport-glow" aria-hidden="true" />
       {anim === "side" ? (

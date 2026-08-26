@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { NumericKeypad } from "./NumericKeypad";
 import type { PlayerSelection } from "../api/types";
 import { C, ui } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
@@ -56,35 +54,54 @@ export function BetPanel({
 }) {
   const { CHIPS, CHOICE, STAKE_FIELD } = useDesign();
   const { t } = useLanguage();
-  const [keypadOpen, setKeypadOpen] = useState(false);
   const shown = stakeText || String(stake);
-  const stakeRef = useAutoFit<HTMLSpanElement>(42, 18, [shown]);
+  const stakeRef = useAutoFit<HTMLInputElement>(42, 18, [shown]);
 
   return (
     <>
-      {/* `ManualStakeInputField` — frame mobile-10. The extraction is a
-       * single mobile-shaped canvas (no separate Desktop scene captured),
-       * so this port always uses `KeypadManager`'s on-screen keypad rather
-       * than branching on a live viewport breakpoint. */}
-      <button
-        type="button"
-        className="btn press"
+      {/* `ManualStakeInputField` — frame mobile-10, now a real text input.
+       *
+       * The source drives this through `KeypadManager`, an on-screen numeric
+       * keypad, because a Unity WebGL canvas has no native text entry to fall
+       * back on. On the web that constraint doesn't exist: the field is an
+       * `<input inputMode="decimal">`, so desktop users type and mobile users get
+       * the OS numeric keyboard. `CustomKeypad`/`NumericKeypad` is removed.
+       *
+       * `setStakeText` runs the source's own `LimitDecimalPlaces` validator on
+       * every keystroke, and `commitStake` clamps to [minimum, maximum] on blur
+       * or Enter — the same two engine actions the keypad used to call, so the
+       * validation rules are unchanged. */}
+      <div
+        className="node"
         style={{ left: STAKE_FIELD.field.x, top: STAKE_FIELD.field.y, width: STAKE_FIELD.field.w, height: STAKE_FIELD.field.h }}
-        disabled={busy}
-        onClick={() => {
-          playClick();
-          setKeypadOpen(true);
-        }}
       >
         <Spr src={ui("stake-field")} rect={{ x: 0, y: 0, w: STAKE_FIELD.field.w, h: STAKE_FIELD.field.h }} />
         <span
-          ref={stakeRef}
-          className="tmp nowrap"
-          style={{ position: "absolute", inset: 0, fontSize: 42, color: "#022A40", justifyContent: "center", alignItems: "center" }}
+          className="tmp nowrap stake-currency"
+          style={{ position: "absolute", inset: 0, fontSize: 42, color: "#022A40" }}
         >
-          {currency} {shown}
+          {currency}
         </span>
-      </button>
+        <input
+          ref={stakeRef}
+          className="stake-input"
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          aria-label="Stake amount"
+          disabled={busy}
+          value={shown}
+          onChange={(e) => onStakeText(e.target.value)}
+          onFocus={(e) => e.currentTarget.select()}
+          onBlur={onCommitStake}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onCommitStake();
+              e.currentTarget.blur();
+            }
+          }}
+        />
+      </div>
 
       {/* `Addition Button` / `Subtraction Button` — frame mobile-11 plate +
        * mobile-13/mobile-12 glyphs at their own inset rects. These used to be
@@ -217,18 +234,6 @@ export function BetPanel({
         <ChoiceLabel label={t("TAIL")} pays={`${t("Pays")} ${PAYOUT_MULTIPLIER.toFixed(2)}x`} CHOICE={CHOICE} />
       </button>
 
-      {keypadOpen && (
-        <NumericKeypad
-          value={stakeText}
-          currency={currency}
-          onChange={onStakeText}
-          onDone={() => {
-            onCommitStake();
-            setKeypadOpen(false);
-          }}
-          onCancel={() => setKeypadOpen(false)}
-        />
-      )}
     </>
   );
 }

@@ -26,8 +26,13 @@ export const DESIGN_H = 2340;
 /** `Canvas/Background` — the full-canvas backdrop. Mobile uses interface frame
  * mobile-19; the Desktop scene uses a different, landscape-authored sprite
  * (`Coin & Toss - desktop - 1.png`), so the sprite name travels with the rect
- * rather than being hardcoded at the call site. */
-export const SCENE = { showTicker: true } as const;
+ * rather than being hardcoded at the call site.
+ *
+ * `showTicker` is gone with the marquee it gated: `NavPanel/Ticker` is an
+ * inactive decorative hairline in the scene, and the scrolling "x***y won USD n"
+ * feed drawn through it was fabricated rather than extracted, so it has been
+ * removed by request. */
+export const SCENE = {} as const;
 
 /**
  * Vertical recentre for the `Game Panel` subtree.
@@ -111,14 +116,10 @@ export const C = {
   insufficientCloseBlue: "#0EB6CC",
   /** `Notification Panel`. */
   notifyRed: "#FF0101",
-  /** Keypad palette (`Assets/Keypad/` — same asset family as the sibling
-   * ports' `CustomKeypad` prefab). */
-  keypadBody: "#29323B",
-  keypadFace: "#344550",
-  keypadWell: "#1E2126",
-  keypadGlyph: "#294853",
-  keypadSave: "#3EA444",
-  keypadScrim: "rgba(22, 27, 34, 0.5176)",
+  /** Win variant of `Notification Panel` — not in the scene (which has a single
+   * red panel for every message), added so a win doesn't announce itself in
+   * alarm-red. Matched to `Newround`'s green so it stays inside the palette. */
+  notifyGreen: "#1F9D2F",
   /** `No Bet to Display/Image` / `Bet History` full-bleed backdrop. */
   historyPurple: "#2F1D52",
   historyCardPurple: "#5318A4",
@@ -153,10 +154,6 @@ export const R = {
   relaunchButton: slice9(8), // 13.5
   /** `Notification Panel`. ppum 10. */
   notification: slice9(10), // 10.8
-  /** Keypad body / display / input / keys. ppum 4. */
-  keypad: slice9(4), // 27
-  /** Keypad row containers + backspace. ppum 6. */
-  keypadRow: slice9(6), // 18
 } as const;
 
 /* ------------------------------------------------------------------ layout */
@@ -206,8 +203,15 @@ export const NAV = {
  * `SpriteRenderer`s) — see "What could not be matched exactly" in the
  * README; the existing `coin-toss-bg.png`/`coin-toss-bg-wide.png` art from
  * the initial build is reused for it.
+ *
+ * `y` is the scene's 548.664 pushed down by 178. The backdrop art puts the
+ * altar's top surface around canvas y=1341, while the disc (inset 8% of this
+ * 800 box, inside a layer offset by `LAYOUT.gameDy`) used to bottom out at
+ * y=1122 — leaving the coin floating ~219px clear of the stand it is supposed
+ * to be resting just above. At 726.664 the disc bottoms out near 1300, a small
+ * gap above the altar.
  */
-export const COIN_VIEWPORT = { x: 140, y: 548.664, w: 800, h: 800 } as const;
+export const COIN_VIEWPORT = { x: 140, y: 726.664, w: 800, h: 800 } as const;
 
 /**
  * `Interactive Pane` is a *stretch* child (`anchorMin/Max: (0,0)-(1,1)`) of
@@ -233,20 +237,37 @@ export const COIN_VIEWPORT = { x: 140, y: 548.664, w: 800, h: 800 } as const;
 const IP_X = 75.6;
 
 /**
+ * Vertical nudge for the same `Interactive Pane` subtree.
+ *
+ * The scene stacks the stake field, quick-bet grid and Heads/Tails buttons high
+ * enough that they ended ~350px short of the canvas bottom, leaving a dead band
+ * under the choice buttons while crowding the coin above. Pushing the coin down
+ * onto its stand (see `COIN_VIEWPORT`) would have collided with the stepper
+ * plates, so the whole pane moves down with it: the stepper row now starts just
+ * below the coin and the choice buttons finish at ~2210, just above the
+ * backdrop's bottom border pattern.
+ *
+ * Applied to `STAKE_FIELD`, `CHIPS` and `CHOICE`. `CASHOUT_RETRY` shares the
+ * pane's coordinate space but is a full-screen error state that never renders
+ * alongside these, so it keeps the scene's own y.
+ */
+const IP_Y = 219;
+
+/**
  * `Interactive Pane/BetPanel` — stake entry + quick-bet chips + the
  * Heads/Tails choice buttons. `Interactive Pane` itself has
  * `Image.m_Enabled: false` (no plate).
  */
 export const STAKE_FIELD = {
   /** `ManualStakeInputField` — frame `mobile-10`. */
-  field: { x: 117 + IP_X, y: 1345.46, w: 694.8, h: 127.8 },
+  field: { x: 117 + IP_X, y: 1345.46 + IP_Y, w: 694.8, h: 127.8 },
   /** `Addition Button` — frame `mobile-11` (round plate) + `mobile-13`
    * (plus glyph) at its own inset rect. */
-  increase: { x: 666.9 + IP_X, y: 1305.86, w: 207, h: 207 },
-  increaseGlyph: { x: 729.9 + IP_X, y: 1364.36, w: 81, h: 90 },
+  increase: { x: 666.9 + IP_X, y: 1305.86 + IP_Y, w: 207, h: 207 },
+  increaseGlyph: { x: 729.9 + IP_X, y: 1364.36 + IP_Y, w: 81, h: 90 },
   /** `Subtraction Button` — `mobile-11` + `mobile-12` (minus glyph). */
-  decrease: { x: 54.9 + IP_X, y: 1305.86, w: 207, h: 207 },
-  decreaseGlyph: { x: 113.4 + IP_X, y: 1377.86, w: 90, h: 63 },
+  decrease: { x: 54.9 + IP_X, y: 1305.86 + IP_Y, w: 207, h: 207 },
+  decreaseGlyph: { x: 113.4 + IP_X, y: 1377.86 + IP_Y, w: 90, h: 63 },
   /** `minimum`/`maximum` — the scene's own rects put these in two
    * *overlapping* 540-wide boxes (left-aligned min / right-aligned max)
    * relying on Unity's shorter rendered text to keep them apart; at this
@@ -260,8 +281,8 @@ export const STAKE_FIELD = {
    * plates with a real gap, and widened to the full content column
    * (`QuickBet`'s row width) so "max: CUR 500.00" no longer wraps inside a
    * 347-wide half-field box. */
-  minimum: { x: -46.836 + IP_X, y: 1540, w: 1022.47 / 2, h: 64, fs: 42 },
-  maximum: { x: -46.836 + IP_X + 1022.47 / 2, y: 1540, w: 1022.47 / 2, h: 64, fs: 42 },
+  minimum: { x: -46.836 + IP_X, y: 1540 + IP_Y, w: 1022.47 / 2, h: 64, fs: 42 },
+  maximum: { x: -46.836 + IP_X + 1022.47 / 2, y: 1540 + IP_Y, w: 1022.47 / 2, h: 64, fs: 42 },
 } as const;
 
 /**
@@ -273,7 +294,7 @@ export const STAKE_FIELD = {
  * layout-group formula, since the children's own serialised rects are
  * runtime-computed placeholders (`0`) in the scene file.
  */
-const QUICKBET_RECT = { x: -46.836 + IP_X, y: 1571.36, w: 1022.47 };
+const QUICKBET_RECT = { x: -46.836 + IP_X, y: 1571.36 + IP_Y, w: 1022.47 };
 const QUICKBET_ROW_H = 90.49;
 const QUICKBET_ROW_SPACING = 64;
 const QUICKBET_CHIP_SPACING = 32;
@@ -301,7 +322,7 @@ export const CHIPS = {
  * (`Pays 2x` at y=2047.75, i.e. 24% down from the button's own top),
  * flagged here rather than silently invented.
  */
-const CHOICE_RECT = { x: -46.836 + IP_X, y: 1923.26, w: 1022.47, h: 230.4 };
+const CHOICE_RECT = { x: -46.836 + IP_X, y: 1923.26 + IP_Y, w: 1022.47, h: 230.4 };
 const CHOICE_SPACING = 76.4;
 export const CHOICE = {
   y: CHOICE_RECT.y,
@@ -480,24 +501,4 @@ export const HELP = {
   bodyW: 900,
 } as const;
 
-/** `CustomKeypad` (prefab) — authored on a 1080x2340 canvas already (unlike
- * the sibling ports' 1080x1920 keypad prefab), so no re-centring offset is
- * needed. */
-export const KEYPAD = {
-  scrim: { x: -216, y: -11.34, w: 1512, h: 2688 },
-  body: { x: -64.8, y: 660.66, w: 1209.6, h: 1344 },
-  display: { x: 63.2, y: 795.06, w: 953.6, h: 201.6 },
-  input: { x: 71.2, y: 803.06, w: 937.6, h: 185.6 },
-  inputText: { x: 135.2, y: 819.06, w: 575.2, h: 153.6, fs: 36 },
-  backspace: { x: 774.4, y: 803.06, w: 234.4, h: 185.6 },
-  backspaceGlyph: { x: 827.6, y: 831.86, w: 128, h: 128, fs: 72 },
-  rowTops: [1052.98, 1227.7, 1402.42, 1577.14],
-  keyLefts: [63.2, 392.14, 721.09],
-  keyW: 296.94,
-  keyH: 142.72,
-  keyFs: 72,
-  save: { x: 63.2, y: 1767.86, w: 953.6, h: 172.8, fs: 72 },
-  close: { x: 1023.84, y: 660.66, w: 120.96, h: 134.4, fs: 72 },
-  dot: { x: 861.56, y: 1640.5, w: 16, h: 16 },
-} as const;
 

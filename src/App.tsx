@@ -10,7 +10,6 @@ import { ErrorScreen } from "./components/ErrorScreen";
 import { TopBar } from "./components/TopBar";
 import { CoinStage, type CoinAnim } from "./components/CoinStage";
 import { BetPanel } from "./components/BetPanel";
-import { Ticker } from "./components/Ticker";
 import { NotificationToast } from "./components/NotificationToast";
 import { InsufficientFundsModal } from "./components/InsufficientFundsModal";
 import { CashoutRetryModal } from "./components/CashoutRetryModal";
@@ -47,7 +46,7 @@ function computeAnim(
 /**
  * The `Canvas` root, in its z-order (see `hierarchy` in the extraction):
  * `background` (frame mobile-19, full-bleed) is drawn first, then
- * `Game Panel` (NavPanel/Ticker/GameView/BetPanel/
+ * `Game Panel` (NavPanel/GameView/BetPanel/
  * CashoutRetry/MenuPanel — all the live gameplay chrome), then the
  * top-level overlays (`Bet History`, `About`/Help), each of which is a
  * full-screen sibling of `Game Panel`, not
@@ -69,7 +68,7 @@ export default function App() {
 }
 
 function Game() {
-  const { canvas, BACKDROP, SCENE, LAYOUT } = useDesign();
+  const { canvas, BACKDROP, LAYOUT } = useDesign();
   const { state, actions } = useGameSession();
   const { boot: bootLanguage } = useLanguage();
 
@@ -138,7 +137,6 @@ function Game() {
               }}
             >
             <TopBar currency={state.currency} balance={state.balance} onMenu={() => setMenuVisible(true)} />
-            {SCENE.showTicker && <Ticker currency={state.currency} />}
 
             <CoinStage anim={computeAnim(state.busy, state.isFlipping, state.flipOutcome, state.settledOutcome)} />
 

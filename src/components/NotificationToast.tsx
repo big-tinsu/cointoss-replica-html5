@@ -39,7 +39,11 @@ export function NotificationToast({ notification }: { notification: Notification
           top: TOAST.panel.y,
           width: TOAST.panel.w,
           height: TOAST.panel.h,
-          background: C.notifyRed,
+          // The scene ships one red Notification Panel for every message, but a
+          // win reading in alarm-red was actively misleading. `isError` already
+          // separates them: every engine `notify()` passes `true` except the win,
+          // so this is a clean win-vs-everything-else split rather than a guess.
+          background: notification.isError ? C.notifyRed : C.notifyGreen,
           borderRadius: TOAST.radius,
         }}
       />

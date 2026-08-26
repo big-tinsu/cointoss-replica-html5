@@ -290,102 +290,105 @@ input:focus {
   }
 }
 
+/* The flip spins in place.
+ *
+ * These keyframes used to lift the coin with `translateY(-14%)` at 60% and drop
+ * it back at the end, so the coin visibly jumped up off the stand mid-round and
+ * sank back down — reported as "when it flips, it moves upwards". A coin toss
+ * reads fine as a pure spin, and staying put keeps it seated above the altar.
+ *
+ * Duration comes from `--flip-ms`, which `CoinStage` sets from the engine's own
+ * `FLIP_DURATION_MS`. These were hardcoded to `5s` while the engine waited only
+ * 1000ms before revealing the result, so the win/loss toast fired roughly four
+ * seconds BEFORE the coin stopped spinning. Sharing one source of truth means
+ * they can no longer drift. */
 .coin-flipper[data-anim="head"] {
-  animation: coin-flip-head 5s cubic-bezier(0.2, 0.6, 0.25, 1) forwards;
+  animation: coin-flip-head var(--flip-ms, 1000ms) cubic-bezier(0.2, 0.6, 0.25, 1) forwards;
 }
 @keyframes coin-flip-head {
   from {
-    transform: rotateY(0deg) translateY(0);
-  }
-  60% {
-    transform: rotateY(1260deg) translateY(-14%);
+    transform: rotateY(0deg);
   }
   to {
-    transform: rotateY(1800deg) translateY(0);
+    transform: rotateY(1800deg);
   }
 }
 
 .coin-flipper[data-anim="tail"] {
-  animation: coin-flip-tail 5s cubic-bezier(0.2, 0.6, 0.25, 1) forwards;
+  animation: coin-flip-tail var(--flip-ms, 1000ms) cubic-bezier(0.2, 0.6, 0.25, 1) forwards;
 }
 @keyframes coin-flip-tail {
   from {
-    transform: rotateY(0deg) translateY(0);
-  }
-  60% {
-    transform: rotateY(1260deg) translateY(-14%);
+    transform: rotateY(0deg);
   }
   to {
-    transform: rotateY(1980deg) translateY(0);
+    transform: rotateY(1980deg);
   }
 }
 
+/* `side` — the always-losing edge landing. `side.png` really is the coin viewed
+ * edge-on, so the art is right; what read as "weird" was scale. It was drawn in
+ * a 60% box (clearly smaller than the 84% disc, so it looked like a different
+ * object) and the settle squashed it to `scaleX(0.2)`, which mid-animation is a
+ * grey splinter a few px wide. Now it fills the same box as the disc, so it
+ * reads as the same coin stood on its edge, and rocks to a stop without ever
+ * collapsing to a line. */
 .coin-side {
   position: absolute;
-  left: 20%;
-  top: 20%;
-  width: 60%;
-  height: 60%;
+  inset: 8%;
   object-fit: contain;
-  animation: coin-side-wobble 5s ease-out forwards;
+  animation: coin-side-settle var(--flip-ms, 1000ms) ease-out forwards;
+  filter: drop-shadow(0 0 40px rgba(246, 194, 20, 0.35));
 }
-@keyframes coin-side-wobble {
+@keyframes coin-side-settle {
   0% {
-    transform: scaleX(0.2) rotate(0deg);
+    transform: rotate(-14deg) scaleX(0.85);
   }
-  15% {
-    transform: scaleX(1) rotate(45deg);
+  35% {
+    transform: rotate(9deg) scaleX(1);
   }
-  30% {
-    transform: scaleX(0.3) rotate(-30deg);
+  65% {
+    transform: rotate(-5deg) scaleX(0.94);
   }
-  50% {
-    transform: scaleX(0.9) rotate(15deg);
-  }
-  75% {
-    transform: scaleX(0.5) rotate(-6deg);
+  85% {
+    transform: rotate(2deg) scaleX(1);
   }
   100% {
-    transform: scaleX(1) rotate(0deg);
+    transform: rotate(0deg) scaleX(1);
   }
 }
 
-/* -------------------------------------------------------------- ticker */
-/* `NavPanel/Ticker` is an inactive decorative hairline in the scene, but
- * `Ticker.cs` is a genuinely live fabricated marquee (game-logic layer's
- * earlier documented decision) — rendered as a thin strip directly under
- * NavPanel, matching the hairline's own tinted-white styling. */
-.ticker {
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
-  white-space: nowrap;
+/* ------------------------------------------------------------ stake input */
+/* `ManualStakeInputField` — a real `<input>` now that `KeypadManager`'s
+ * on-screen keypad is gone (a Unity-WebGL workaround with no reason to exist on
+ * the web). The currency code is a separate static label so the input itself
+ * holds nothing but the number, which keeps caret behaviour and select-on-focus
+ * sane; both are centred as a pair inside the field art. */
+.stake-currency {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-32%);
+  pointer-events: none;
 }
-.ticker-track {
-  display: inline-flex;
-  gap: 3rem;
-  animation: ticker-scroll 30s linear infinite;
-  padding: 0.3rem 0;
+.stake-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transform: translateX(12%);
+  font-size: 42px;
+  color: #022a40;
+  background: none;
+  border: 0;
+  /* Safari zooms the page when a focused input's text is under ~16 CSS px; the
+   * stage scale already keeps this comfortably above that, and the design-space
+   * font-size must not be overridden by the UA. */
+  -webkit-text-size-adjust: 100%;
 }
-.ticker-track span {
-  padding-right: 3rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 22px;
-}
-@keyframes ticker-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* ---------------------------------------------------------------- keypad */
-.keypad-key {
-  transition: filter 90ms ease-out;
-}
-.keypad-key:active {
-  filter: brightness(1.25);
+.stake-input:disabled {
+  opacity: 0.55;
 }
 
 /* ------------------------------------------------------------- overlays */

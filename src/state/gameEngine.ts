@@ -44,7 +44,17 @@ const DEFAULT_MIN_FALLBACK = 1;
  * same beats and shortens them — roughly a second of animation, then the
  * outcome, with its toast on screen for a second.
  */
-const FLIP_DURATION_MS = 1000; // GameManager.WaitForOutcome — WaitForSeconds(5), flat, no callback (spec §1 step 10); 5s of coin was the single slowest beat in the family
+/**
+ * `GameManager.WaitForOutcome` — `WaitForSeconds(5)`, flat, no callback (spec §1
+ * step 10). Shortened from the source's 5s: that was the single slowest beat in
+ * the family.
+ *
+ * EXPORTED because the coin's CSS animations must run for exactly this long —
+ * `CoinStage` feeds it to `--flip-ms`. The stylesheet used to hardcode `5s`
+ * against this 1000ms wait, so the result toast appeared about four seconds
+ * before the coin finished spinning.
+ */
+export const FLIP_DURATION_MS = 1000;
 const NOTIFICATION_MS = 1000; // GameManager.Notify (~2s per toast, spec end of §1), halved — see note
 const QUICK_BET_BUTTON_COUNT = 5;
 
