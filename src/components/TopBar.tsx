@@ -66,9 +66,12 @@ export function TopBar({
         {isDesktop ? "DESKTOP\nMODE" : "PHONE\nMODE"}
       </Tmp>
 
+      {/* `.hit-target` widens the tappable area well past the sprite — the
+        * authored rect is tiny once the stage scale is applied (see the NAV
+        * comment in design.ts). */}
       <button
         type="button"
-        className="btn press"
+        className="btn press hit-target"
         style={{ left: NAV.menuButton.x, top: NAV.menuButton.y, width: NAV.menuButton.w, height: NAV.menuButton.h }}
         onClick={() => {
           playClick();

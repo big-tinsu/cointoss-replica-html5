@@ -96,16 +96,20 @@ function Game() {
   return (
     <CustomizationProvider customData={state.customization}>
       <Stage spec={canvas}>
-        {/* z 1 — `background`: frame mobile-19 stretched to the full
-         * 1080x2340 canvas rect. This illustrated altar scene is the
-         * design's ground; there is no gradient anywhere in the scene. */}
+        {/* z 1 — `background`: frame mobile-19. This illustrated altar scene is
+         * the design's ground; there is no gradient anywhere in the scene.
+         *
+         * Position/size come from `.stage-backdrop` rather than inline styles:
+         * the scene's literal [0,0,1080x2340] rect is the reference box, but the
+         * VISIBLE canvas is usually wider than that, which left unpainted black
+         * bars down both sides on real phones. The class stretches it over
+         * `--canvas-w`/`--canvas-h` with `object-fit: cover` instead. */}
         <img
           className="spr stage-backdrop"
           src={ui(BACKDROP.sprite)}
           alt=""
           width={BACKDROP.rect.w}
           height={BACKDROP.rect.h}
-          style={{ position: "absolute", left: BACKDROP.rect.x, top: BACKDROP.rect.y, width: BACKDROP.rect.w, height: BACKDROP.rect.h }}
           decoding="sync"
           loading="eager"
         />
@@ -166,8 +170,6 @@ function Game() {
               onClose={actions.dismissInsufficientFunds}
             />
 
-            <NotificationToast notification={state.notification} />
-
             <MenuPanel
               visible={menuVisible}
               onClose={() => setMenuVisible(false)}
@@ -179,6 +181,12 @@ function Game() {
             />
 
             </div>
+
+            {/* Toasts sit OUTSIDE the `Game Panel` transform layer: that layer
+                is shifted by `LAYOUT.gameDy` (-162.66 on Mobile), which pulled the
+                scene's own y=157.66 panel up to ~-5 and clipped it off the top of
+                the screen. As a floating overlay its y is now plain canvas space. */}
+            <NotificationToast notification={state.notification} />
 
             {/* z 3-6 — top-level Canvas siblings of `Game Panel`. */}
             <BetHistoryPanel

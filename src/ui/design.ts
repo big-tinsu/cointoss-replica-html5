@@ -187,8 +187,13 @@ export const NAV = {
    * `HamburgerMenu` glyph is frame `mobile-7`. Unlike the sibling ports,
    * NavPanel has no separate Help/Bet-History icon buttons — both live
    * inside the `MenuPanel` drawer this button opens (see MENU below). */
-  menuButton: { x: 962.24, y: 275.61, w: 55.9, h: 48.1 },
-  menuGlyph: { x: 975.24, y: 289.91, w: 29.9, h: 19.5 },
+  /** The scene authors this at 55.9x48.1, which at the mobile stage scale
+   * (~0.4) renders as roughly 22x19 CSS px — far too small to aim at, let alone
+   * hit. Scaled up ~1.45x about its own centre (990.19, 299.66) so the art
+   * stays put relative to the balance panel, and the button additionally
+   * carries `.hit-target` for a ~48 CSS px tap area (see index.css). */
+  menuButton: { x: 949.7, y: 264.66, w: 81, h: 70 },
+  menuGlyph: { x: 968.5, y: 285.5, w: 43.4, h: 28.3 },
 } as const;
 
 /**
@@ -394,8 +399,12 @@ export const ERROR = {
  * canvas) with a real corner radius so it reads as a floating toast.
  */
 export const TOAST = {
-  panel: { x: 40, y: 157.66, w: 1000, h: 128 },
-  text: { x: 72, y: 165.66, w: 936, h: 112, fs: 48 },
+  /** `y` is plain CANVAS space — the toast is rendered outside the `Game Panel`
+   * transform layer, so `LAYOUT.gameDy` no longer applies. The scene's own
+   * y=157.66 minus that -162.66 offset put it at ~-5, clipped off the top of
+   * the screen; 260 clears the NavPanel (which ends at a visible y of ~230). */
+  panel: { x: 40, y: 260, w: 1000, h: 128 },
+  text: { x: 72, y: 268, w: 936, h: 112, fs: 48 },
   radius: 40,
 } as const;
 

@@ -172,9 +172,42 @@ input:focus {
 }
 
 .stage-backdrop {
-  /* `background` [0,0,1080x2340] — frame mobile-19 stretched to the full
-   * canvas rect, exactly as the Image does. */
-  object-fit: fill;
+  /* `background` — frame mobile-19.
+   *
+   * The Unity Image is [0,0,1080x2340], and painting it at exactly that rect is
+   * what left black bars down the sides on real phones: `.stage` IS the
+   * 1080x2340 reference box, but the VISIBLE area (`--canvas-w`/`--canvas-h`,
+   * set by Stage.tsx) is routinely larger — a 530x860 viewport measures
+   * `--canvas-w: 1442px`, i.e. 362 design px of overflow with nothing painted
+   * in it. Browser chrome makes this worse, since a shorter viewport is
+   * relatively wider than the very tall 1080:2340 reference.
+   *
+   * Sized to the visible canvas and centred (the same trick `.scrim` uses),
+   * with `cover` rather than `fill` so the art crops instead of stretching. */
+  left: 50%;
+  top: 50%;
+  width: var(--canvas-w, 1080px);
+  height: var(--canvas-h, 2340px);
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+}
+
+/* Expands a control's tappable area without touching its art.
+ *
+ * Several NavPanel controls are authored tiny — `MenuButton` is 55.9x48.1
+ * design px, which at the mobile stage scale (~0.4) lands around 22x19 CSS px,
+ * well under a usable touch target. The pseudo-element is part of the button's
+ * hit region, so this widens what a finger can land on while the sprite keeps
+ * its designed size and position. Units here are design px (inside the scaled
+ * stage), so 120 resolves to ~48 CSS px on mobile. */
+.hit-target::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 150px);
+  height: max(100%, 150px);
 }
 
 /* --------------------------------------------------------------- top bar */
