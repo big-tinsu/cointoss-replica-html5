@@ -40,10 +40,22 @@ app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+/**
+ * The origin this mock tells the client to send every *subsequent* call to —
+ * it comes back as the token response's `meta.patnerUrl`, and `client.ts`
+ * derives `baseUrl` (`{origin}/api/v2/`) and the bet-history URL from it.
+ *
+ * `x-mock-base` lets a deployment mount this app under a path prefix instead
+ * of at the domain root. The Vercel preview wrapper sets it to `/api/mock`, so
+ * the mock's routes live at `/api/mock/api/v2/...` and can never shadow the
+ * real `/api/v2/...` contract paths. Unset (local dev) it is "", leaving the
+ * original root-mounted behaviour byte-identical.
+ */
 function requestOrigin(req) {
   const proto = req.get("x-forwarded-proto") ?? req.protocol;
   const host = req.get("host");
-  return `${proto}://${host}`;
+  const base = req.get("x-mock-base") ?? "";
+  return `${proto}://${host}${base}`;
 }
 
 function errorEnvelope(message) {

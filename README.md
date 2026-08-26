@@ -46,6 +46,55 @@ The mock backend (`server/index.js`) is a single-player, in-memory
 implementation of every real endpoint (see "Backend contract" below),
 including the server-authoritative three-outcome RNG.
 
+### Previewing a deploy with `?mock=1`
+
+A deployed build normally posts its token exchange to
+`https://portal.shacksevo.co/api/v2/partner/agg/token`. That endpoint currently
+returns `500 {"status":false,"message":"Unexpected number in JSON at position
+1"}` for every launch, and a failed token is fatal (`gameEngine.ts` →
+`phase: "fatal-error"`), so the deploy cannot be previewed at all.
+
+The failure is server-side and downstream of decryption — the backend decrypts
+our `url` **and** the partner's `clientId` successfully, then throws parsing the
+clientId's own pipe-delimited `sessionId|userId|timestamp|hash` payload as JSON.
+Ruled out client-side: body encoding (`application/json` and
+`x-www-form-urlencoded` give the identical error; `multipart/form-data` gives a
+*different* one, `400 Invalid URL`, which proves our payload decrypts fine) and
+URL normalization (with and without the trailing slash are identical).
+
+So `?mock=1` routes a built deploy at the same mock backend `npm run dev` uses,
+served as a Vercel function from `api/mock/[...path].js`:
+
+```
+https://<deploy-host>/?mock=1
+```
+
+No `clientId`, no credentials, no real backend. Opt-in and non-shadowing:
+
+- Without the flag a launch behaves exactly as before — `isMockBackend()`
+  (`src/api/urlParams.ts`) is the only thing that redirects the contract.
+- The mock's routes live under `/api/mock/**`, never at the real `/api/v2/**`
+  contract paths, so it cannot shadow production even if the game were pointed
+  at this origin. The token response's `meta.patnerUrl` carries that prefix, so
+  authenticate / place-bet / actions / bet-history follow it automatically.
+- The flag is a deliberate no-op in dev, where `/api/**` is already proxied to
+  the mock and the prefix would miss the Express routes.
+
+Preview-only limitations, both from the mock holding state in memory with no
+shared store between serverless invocations:
+
+- The wallet resets to the seed balance whenever a cold instance serves a
+  request. Balances are illustrative, not a running ledger.
+- `agg-place-bet` escrows the pending bet and `agg-actions` resolves it on the
+  next request. Those are milliseconds apart and normally hit the same warm
+  instance, but a cold start landing between them surfaces the mock's own
+  "You've no ongoing round. Kindly reload!" error.
+
+Token validation is shape-based rather than `Set`-backed under
+`MOCK_STATELESS_TOKENS=1` (set by the wrapper) for the same reason: the token
+exchange and the authenticate call that follows it are separate requests and
+would otherwise 401 whenever the second missed the first one's instance.
+
 ## How the port maps to the Unity project
 
 | Unity | Here |
@@ -259,16 +308,22 @@ partner-supplied customization text. `server/languages.js` stubs a small
 `fr`/`sw` translation set for the more visible gameplay keys and echoes the
 rest back untranslated.
 
-## Orientation overlay (real here, unlike the sibling games)
+## Orientation overlay (removed)
 
-`src/hooks/useOrientationGuard.ts` computes an "expected device" once at
-mount (mirroring `DynamicUiManager.CheckDeviceType()`'s
-`Screen.width < Screen.height` aspect check), then reactively compares it
-against the live orientation via `matchMedia('(orientation: portrait)')`
-change events — not a per-frame polling loop, since the spec itself flags
-`Update()`-polling as a game-loop pattern not to replicate literally in a
-non-game-loop web app. `OrientationOverlay.tsx` shows a "please rotate your
-device" message on mismatch, using the exact localized copy from the source.
+The source's `PortraitOrientationWarning` /
+`GameManager.DisplayOrientationMessage` (spec §1 step 17, §7) is the one game
+of the three siblings where that "please rotate your device" overlay is live
+code rather than a dead/commented-out path, and it was originally ported here
+(`useOrientationGuard.ts` + `OrientationOverlay.tsx`, an aspect check at mount
+compared against live `matchMedia('(orientation: portrait)')` events).
+
+It has since been **removed by request**: both scenes now render from their own
+token set at whatever orientation the device is in (`DesignProvider` already
+swaps the Mobile/Desktop layouts on `isPortrait`), so nagging the player to
+rotate no longer served a purpose. The `ORIENTATION` rects are gone from both
+`design.ts` and `design.desktop.ts`, along with the overlay's localized copy.
+`icons8-rotate-phone-64.png` is still in `public/` (the asset manifest is
+generated from the filesystem) but nothing references it.
 
 ## Assets
 

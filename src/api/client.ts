@@ -6,6 +6,7 @@
  */
 import { decrypt, encrypt } from "./crypto";
 import { getJson, postJson } from "./http";
+import { isMockBackend } from "./urlParams";
 import type {
   AggregatorData,
   AuthData,
@@ -19,13 +20,32 @@ import type {
 
 export const GAME_TYPE = "cointoss";
 
+/**
+ * Path prefix the deployed preview mock is mounted under
+ * (`api/mock/[...path].js`). Must match `MOCK_BASE` there. Namespaced under
+ * `/api/mock/**` rather than the real `/api/v2/**` so the mock can never shadow
+ * the production contract paths.
+ */
+const MOCK_BASE = "/api/mock";
+
 /** `Environment` enum (`GameLoader.cs:10,22,146-148`) — a real production
  * build picks one of two hardcoded hosts; this port makes it overridable via
- * env var and defaults to the same-origin mock in dev (see devBootstrap.ts). */
+ * env var and defaults to the same-origin mock in dev (see devBootstrap.ts).
+ *
+ * `?mock=1` additionally routes a *built* deploy at this origin's bundled mock,
+ * for previewing without aggregator credentials — see `isMockBackend()`.
+ * Ordered after the `DEV` branch on purpose: `npm run dev` already proxies the
+ * un-prefixed `/api/**` paths straight to `server/index.js`, so applying the
+ * `/api/mock` prefix there would miss the Express routes (nothing strips it —
+ * that only happens in the serverless wrapper) and 404. The flag is therefore a
+ * no-op in dev, where it is also unnecessary. */
 function resolveTokenUrl(): string {
   const override = import.meta.env.VITE_TOKEN_URL as string | undefined;
   if (override) return override;
   if (import.meta.env.DEV) return `${window.location.origin}/api/v2/partner/agg/token`;
+  if (isMockBackend()) {
+    return `${window.location.origin}${MOCK_BASE}/api/v2/partner/agg/token`;
+  }
   return "https://portal.shacksevo.co/api/v2/partner/agg/token";
 }
 

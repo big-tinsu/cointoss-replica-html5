@@ -67,8 +67,24 @@ export function mintToken() {
   return token;
 }
 
+/**
+ * Local dev keeps every minted token in `validTokens`, which is correct for a
+ * single long-lived `node server/index.js` process.
+ *
+ * The Vercel preview deployment (`api/mock/[...path].js`) runs this same app as
+ * a serverless function, where there is no shared memory: the token exchange
+ * and the `agg-authenticate` call that follows it are two separate HTTP
+ * requests and can land on different (or cold) instances, so a
+ * `validTokens`-only check would 401 the boot with "Session Exipired" roughly
+ * whenever the second request missed the first one's instance. With
+ * `MOCK_STATELESS_TOKENS=1` any token matching `mintToken()`'s own shape is
+ * accepted instead. Safe precisely because this backend is a fake wallet —
+ * there is nothing to protect — and it is read lazily (not at module init) so
+ * the serverless wrapper can set it before handling a request.
+ */
 export function isValidToken(token) {
-  return validTokens.has(token);
+  if (validTokens.has(token)) return true;
+  return process.env.MOCK_STATELESS_TOKENS === "1" && /^[0-9a-f]{32}$/.test(token);
 }
 
 export function getPlayer() {
