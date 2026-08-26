@@ -1,0 +1,9 @@
+{
+  "rewrites": [{ "source": "/api/mock/(.*)", "destination": "/api/mock" }],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [{ "key": "Content-Security-Policy", "value": "frame-ancestors *" }]
+    }
+  ]
+}

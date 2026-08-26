@@ -23,6 +23,15 @@
 //     contract paths, so it cannot shadow the production contract even if the
 //     game were pointed at this origin.
 //
+// This is a single plain file (`api/mock.js`), not the `api/mock/[...path].js`
+// bracket catch-all convention it started as. That convention is Next.js-
+// specific routing sugar; on a plain (non-Next.js) Vercel project it isn't
+// recognized as a function route at all and every request under it 404s at
+// Vercel's edge before this code ever runs. A single named file plus the
+// `vercel.json` rewrite (which forwards the whole `/api/mock/**` prefix here)
+// is the documented, reliable approach — this handler recovers the original
+// sub-path itself from `req.url`.
+//
 // Known preview-only limitations (in-memory state, no shared store):
 //   - The wallet resets to the seed balance whenever a cold instance serves a
 //     request. Balances are illustrative, not a running ledger.
@@ -31,7 +40,7 @@
 //     and normally hit the same warm instance, but a cold start landing between
 //     them surfaces the mock's own "You've no ongoing round. Kindly reload!"
 //     error. Reload and the next round is fine.
-import app from "../../server/index.js";
+import app from "../server/index.js";
 
 /** Must match `MOCK_BASE` in `src/api/client.ts`. */
 const MOCK_BASE = "/api/mock";

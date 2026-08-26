@@ -22,7 +22,7 @@ export const GAME_TYPE = "cointoss";
 
 /**
  * Path prefix the deployed preview mock is mounted under
- * (`api/mock/[...path].js`). Must match `MOCK_BASE` there. Namespaced under
+ * (`api/mock.js`). Must match `MOCK_BASE` there. Namespaced under
  * `/api/mock/**` rather than the real `/api/v2/**` so the mock can never shadow
  * the production contract paths.
  */

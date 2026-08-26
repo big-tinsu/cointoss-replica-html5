@@ -71,7 +71,7 @@ export function mintToken() {
  * Local dev keeps every minted token in `validTokens`, which is correct for a
  * single long-lived `node server/index.js` process.
  *
- * The Vercel preview deployment (`api/mock/[...path].js`) runs this same app as
+ * The Vercel preview deployment (`api/mock.js`) runs this same app as
  * a serverless function, where there is no shared memory: the token exchange
  * and the `agg-authenticate` call that follows it are two separate HTTP
  * requests and can land on different (or cold) instances, so a

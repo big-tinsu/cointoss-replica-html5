@@ -63,7 +63,7 @@ Ruled out client-side: body encoding (`application/json` and
 URL normalization (with and without the trailing slash are identical).
 
 So `?mock=1` routes a built deploy at the same mock backend `npm run dev` uses,
-served as a Vercel function from `api/mock/[...path].js`:
+served as a Vercel function from `api/mock.js`:
 
 ```
 https://<deploy-host>/?mock=1
