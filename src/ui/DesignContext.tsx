@@ -25,7 +25,6 @@ export type DesignTokens = {
   STAKE_FIELD: typeof mobile.STAKE_FIELD;
   CHIPS: typeof mobile.CHIPS;
   CHOICE: typeof mobile.CHOICE;
-  RESULTS: typeof mobile.RESULTS;
   CASHOUT_RETRY: typeof mobile.CASHOUT_RETRY;
   MENU: typeof mobile.MENU;
   INSUFFICIENT: typeof mobile.INSUFFICIENT;
@@ -50,7 +49,6 @@ function bundle(isDesktop: boolean): DesignTokens {
     STAKE_FIELD: s.STAKE_FIELD,
     CHIPS: s.CHIPS,
     CHOICE: s.CHOICE,
-    RESULTS: s.RESULTS,
     CASHOUT_RETRY: s.CASHOUT_RETRY,
     MENU: s.MENU,
     INSUFFICIENT: s.INSUFFICIENT,

@@ -369,29 +369,6 @@ input:focus {
 }
 
 /* Confetti (small CSS celebration tied to any win — see README) */
-.confetti-burst {
-  position: absolute;
-  pointer-events: none;
-}
-.confetti-piece {
-  position: absolute;
-  top: 0;
-  left: calc(4% * var(--i));
-  width: 10px;
-  height: 18px;
-  background: hsl(calc(var(--i) * 15), 90%, 60%);
-  animation: confetti-fall 1.4s ease-in calc(var(--i) * 0.03s) both;
-}
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(220px) rotate(320deg);
-    opacity: 0;
-  }
-}
 
 /* -------------------------------------------------------- loading spinner */
 .loading-dot {

@@ -19,9 +19,10 @@
  *  - Real min/max bet enforcement (spec §2/§3) and procedurally-generated
  *    quick-bet chips (`generateQuickBetValues`, spec §3) — both genuinely new
  *    vs. Penaldo/Keno.
- *  - `ReBet()` re-invokes the same choice+stake in one tap without returning
- *    to idle (spec §1 step 14) — modeled as a distinct action from
- *    `newRound()`.
+ *  - The source's `ReBet()`/`newRound()` pair (spec §1 step 14) is REMOVED by
+ *    request: a resolved round announces itself in a toast and resets straight
+ *    back to the bet controls, with the coin left resting on the face it landed
+ *    on (`settledOutcome`).
  *  - `minimum`/`maximum`/`currency`/`username`/`odds` are populated ONLY from
  *    the boot authenticate call; every later re-authenticate (post-round)
  *    only refreshes `balance`+session per the original `GameManager.
@@ -50,8 +51,15 @@ const QUICK_BET_BUTTON_COUNT = 5;
 export type Phase = "booting" | "fatal-error" | "ready";
 
 export interface Notification {
+  /** A translation KEY — `NotificationToast` renders `t(message)`. */
   message: string;
   isError: boolean;
+  /**
+   * Appended verbatim after the translated `message`, for data that must NOT go
+   * through the translation table (amounts, currency codes). Lets the win toast
+   * read "You just won USD 19.20" with only the phrase localized.
+   */
+  suffix?: string;
 }
 
 export interface RoundResult {
@@ -87,8 +95,16 @@ export interface GameSnapshot {
   busy: boolean; // isAttemptingServerCallBack
   isFlipping: boolean; // isSpinning
   flipOutcome: string | null; // desiredOutcome, drives the coin's CSS animation state
-  resultsVisible: boolean;
-  lastResult: RoundResult | null;
+  /**
+   * The face the coin came to rest on in the round that just finished.
+   *
+   * Separate from `flipOutcome` (which only lives for the duration of the flip
+   * animation) because the coin must KEEP showing the previous result after the
+   * round auto-resets back to the bet controls, instead of snapping back to
+   * `idle`. Cleared when the next bet is placed, so a new round starts from the
+   * spin rather than from the stale face.
+   */
+  settledOutcome: string | null;
 
   insufficientFundsVisible: boolean;
   cashoutRetryVisible: boolean;
@@ -143,8 +159,7 @@ export class GameEngine {
       busy: false,
       isFlipping: false,
       flipOutcome: null,
-      resultsVisible: false,
-      lastResult: null,
+      settledOutcome: null,
       insufficientFundsVisible: false,
       cashoutRetryVisible: false,
       cashoutRetryMessage: "",
@@ -274,13 +289,13 @@ export class GameEngine {
   }
 
   // ── notifications (GameManager.NotifyPlayer/Notify, spec end of §1) ────
-  notify(message: string, isError: boolean): void {
+  notify(message: string, isError: boolean, suffix?: string): void {
     if (this.isNotifying) {
-      this.notificationQueue.push({ message, isError });
+      this.notificationQueue.push({ message, isError, suffix });
       return;
     }
     this.isNotifying = true;
-    this.set({ notification: { message, isError } });
+    this.set({ notification: { message, isError, suffix } });
     setTimeout(() => this.drainNotifications(), NOTIFICATION_MS);
   }
 
@@ -399,7 +414,9 @@ export class GameEngine {
       return;
     }
 
-    this.set({ busy: true });
+    // Drop the previous round's resting face now that a new round is starting,
+    // so the coin spins from `load` rather than sitting on a stale outcome.
+    this.set({ busy: true, settledOutcome: null });
     const stake = this.snapshot.stake;
 
     try {
@@ -435,7 +452,9 @@ export class GameEngine {
   private async runFlip(choice: PlayerSelection, event: OutcomeResult): Promise<void> {
     this.set({ isFlipping: true, flipOutcome: event.generatedOutcome });
     await this.sleep(FLIP_DURATION_MS); // flat WaitForSeconds(5), no per-frame callback, no fallback timeout
-    this.set({ isFlipping: false });
+    // `settledOutcome` outlives the flip so the coin holds this face through the
+    // post-round resync and the auto-reset back to the bet controls.
+    this.set({ isFlipping: false, settledOutcome: event.generatedOutcome });
 
     const won = isWon(event);
     this.pendingResult = { playerChoice: choice, desiredOutcome: event.generatedOutcome, won, cashoutAmount: event.cashoutAmount };
@@ -465,8 +484,24 @@ export class GameEngine {
     if (!cashOut && this.pendingResult) {
       const result = this.pendingResult;
       this.pendingResult = null;
-      this.notify(result.won ? "Nice. You won" : "Sorry. You lost", !result.won);
-      this.set({ resultsVisible: true, lastResult: result });
+      // The win/loss reveal is a toast, not a panel: the `ResultsPanel` trophy
+      // card and its Rebet/New Round pair are gone, so the round announces
+      // itself and hands control straight back to the bet controls.
+      //
+      // The amount rides in `suffix` rather than being interpolated into
+      // `message`, because `message` is a translation KEY (`t()` looks it up in
+      // `DEFAULT_STRINGS`) — baking a number into it would miss the table and
+      // ship an untranslated string. The suffix is appended verbatim after the
+      // translated phrase.
+      this.notify(
+        result.won ? "You just won" : "Sorry. You lost",
+        !result.won,
+        result.won ? `${this.snapshot.currency} ${result.cashoutAmount.toFixed(2)}` : undefined,
+      );
+      // Auto-reset back to the bet controls (spec §1 step 14's Rebet/New Round
+      // step is removed by request) while KEEPING the coin on the face it
+      // landed on — `resetForNewRound` deliberately preserves `settledOutcome`.
+      this.resetForNewRound();
       void this.refreshBetHistory(1);
     }
   }
@@ -478,32 +513,26 @@ export class GameEngine {
     void this.reAuthenticate(false);
   }
 
-  // ── Rebet / New Round (GameManager.ReBet/StartNewRound, spec §1 step 14) ─
+  /**
+   * Return to the bet controls for the next round.
+   *
+   * The source's `Rebet`/`Newround` buttons (spec §1 step 14) are removed by
+   * request — this now runs automatically the moment a round resolves, so the
+   * player is never asked to dismiss a results panel.
+   *
+   * `settledOutcome` is deliberately NOT cleared: the coin must keep showing
+   * the face it landed on while the player sets up their next bet. `chooseAndBet`
+   * clears it when the next round actually starts.
+   */
   private resetForNewRound(): void {
     this.set({
       hasMadeABet: false,
       busy: false,
       isFlipping: false,
       flipOutcome: null,
-      resultsVisible: false,
-      lastResult: null,
       stake: clamp(loadStake(this.snapshot.minimum), this.snapshot.minimum, this.snapshot.maximum),
       stakeText: String(clamp(loadStake(this.snapshot.minimum), this.snapshot.minimum, this.snapshot.maximum)),
     });
-  }
-
-  /** Just returns to idle — no auto re-bet. */
-  newRound(): void {
-    this.resetForNewRound();
-  }
-
-  /** One-tap "bet again": remembers the last choice and immediately
-   * re-invokes `chooseAndBet()` with it, without returning to idle first —
-   * a true one-tap affordance, distinct from `newRound()` (spec §1 step 14). */
-  rebet(): void {
-    const choice = this.snapshot.lastChoice;
-    this.resetForNewRound();
-    if (choice) void this.chooseAndBet(choice);
   }
 
   // ── bet history (CoinTossBetHistoryManager, spec §3 — single

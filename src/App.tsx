@@ -10,7 +10,6 @@ import { ErrorScreen } from "./components/ErrorScreen";
 import { TopBar } from "./components/TopBar";
 import { CoinStage, type CoinAnim } from "./components/CoinStage";
 import { BetPanel } from "./components/BetPanel";
-import { ResultsPanel } from "./components/ResultsPanel";
 import { Ticker } from "./components/Ticker";
 import { NotificationToast } from "./components/NotificationToast";
 import { InsufficientFundsModal } from "./components/InsufficientFundsModal";
@@ -22,8 +21,25 @@ import { CustomizationProvider } from "./components/Customizable";
 import { ShacksLoadingScreen } from "./loading/ShacksLoadingScreen";
 import { useAssetPreload } from "./loading/useAssetPreload";
 
-function computeAnim(busy: boolean, isFlipping: boolean, flipOutcome: string | null): CoinAnim {
+/**
+ * Which `Coin.controller` Animator state the coin renders in.
+ *
+ * `settledOutcome` is checked BEFORE `busy` on purpose. A round resolving runs
+ * a post-flip re-authenticate (`busy: true`) and then auto-resets to the bet
+ * controls; if `busy` won, the coin would spin back to `load` for the duration
+ * of that resync and then snap to the face — a visible flicker right at the
+ * reveal. Resting on the settled face through the whole tail of the round is
+ * both calmer and what "leave the coin on the previous outcome" asks for.
+ * `chooseAndBet` clears `settledOutcome`, so the next round still spins.
+ */
+function computeAnim(
+  busy: boolean,
+  isFlipping: boolean,
+  flipOutcome: string | null,
+  settledOutcome: string | null,
+): CoinAnim {
   if (isFlipping && flipOutcome) return flipOutcome as CoinAnim;
+  if (settledOutcome) return settledOutcome as CoinAnim;
   if (busy) return "load";
   return "idle";
 }
@@ -31,7 +47,7 @@ function computeAnim(busy: boolean, isFlipping: boolean, flipOutcome: string | n
 /**
  * The `Canvas` root, in its z-order (see `hierarchy` in the extraction):
  * `background` (frame mobile-19, full-bleed) is drawn first, then
- * `Game Panel` (NavPanel/Ticker/GameView/BetPanel/ResultsPanel/
+ * `Game Panel` (NavPanel/Ticker/GameView/BetPanel/
  * CashoutRetry/MenuPanel — all the live gameplay chrome), then the
  * top-level overlays (`Bet History`, `About`/Help), each of which is a
  * full-screen sibling of `Game Panel`, not
@@ -72,7 +88,10 @@ function Game() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const showBetPanel = !state.hasMadeABet && !state.resultsVisible;
+  // Hidden only while a bet is in flight. There is no results panel to defer to
+  // any more — a resolved round auto-resets `hasMadeABet`, which brings the bet
+  // controls straight back.
+  const showBetPanel = !state.hasMadeABet;
 
   return (
     <CustomizationProvider customData={state.customization}>
@@ -117,7 +136,7 @@ function Game() {
             <TopBar currency={state.currency} balance={state.balance} onMenu={() => setMenuVisible(true)} />
             {SCENE.showTicker && <Ticker currency={state.currency} />}
 
-            <CoinStage anim={computeAnim(state.busy, state.isFlipping, state.flipOutcome)} />
+            <CoinStage anim={computeAnim(state.busy, state.isFlipping, state.flipOutcome, state.settledOutcome)} />
 
             {showBetPanel && (
               <BetPanel
@@ -135,14 +154,6 @@ function Game() {
                 onChoose={actions.chooseAndBet}
               />
             )}
-
-            <ResultsPanel
-              visible={state.resultsVisible}
-              result={state.lastResult}
-              currency={state.currency}
-              onRebet={actions.rebet}
-              onNewRound={actions.newRound}
-            />
 
             <CashoutRetryModal
               visible={state.cashoutRetryVisible}

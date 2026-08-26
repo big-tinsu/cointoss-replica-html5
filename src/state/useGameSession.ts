@@ -10,8 +10,6 @@ export interface GameSession {
     commitStake: () => void;
     addChip: (amount: number) => void;
     stepStake: (delta: number) => void;
-    rebet: () => void;
-    newRound: () => void;
     dismissInsufficientFunds: () => void;
     retryReAuthenticate: () => void;
     toggleHelp: () => void;
@@ -40,8 +38,6 @@ export function useGameSession(): GameSession {
     commitStake: () => engine.commitStake(),
     addChip: (amount) => engine.addChip(amount),
     stepStake: (delta) => engine.stepStake(delta),
-    rebet: () => engine.rebet(),
-    newRound: () => engine.newRound(),
     dismissInsufficientFunds: () => engine.dismissInsufficientFunds(),
     retryReAuthenticate: () => engine.retryReAuthenticate(),
     toggleHelp: () => engine.toggleHelp(),

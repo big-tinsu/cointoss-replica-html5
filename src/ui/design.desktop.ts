@@ -79,13 +79,6 @@ export const CHOICE = {
     multiRoundBet: {"x": 1105.2, "y": 711, "w": 605.5, "h": 102.9, "fs": 36},
   } as const;
 
-export const RESULTS = {
-    trophy: {"x": 868, "y": 300, "w": 184, "h": 184},
-    resultText: {"x": 610, "y": 500, "w": 700, "h": 80, "fs": 48},
-    detailText: {"x": 610, "y": 590, "w": 700, "h": 60, "fs": 30},
-    rebet: {"x": 1105.2, "y": 679, "w": 274.75, "h": 134.9, "fs": 40},
-    newRound: {"x": 1435.95, "y": 679, "w": 274.75, "h": 134.9, "fs": 40},
-  } as const;
 
 export const CASHOUT_RETRY = {
     message: {"x": 610, "y": 420, "w": 700, "h": 120, "fs": 30},
@@ -133,9 +126,12 @@ export const ERROR = {
     hint: { x: 704, y: 868, w: 512, h: 64, fs: 28 },
   } as const;
 
+/** Already a centred half-width card on the 1920 stage (unlike Mobile's
+ * over-bleeding 1200-on-1080 panel), so only the corner radius is added. */
 export const TOAST = {
     panel: { x: 480, y: 64, w: 960, h: 108 },
     text: { x: 496, y: 72, w: 928, h: 92, fs: 32 },
+    radius: 32,
   } as const;
 
 export const LOADING = {

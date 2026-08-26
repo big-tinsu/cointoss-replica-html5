@@ -310,21 +310,6 @@ export const CHOICE = {
   labelDy: 0.56, // fraction of h
 } as const;
 
-/**
- * `ResultsPanel` — win/loss reveal. All rects here are fully resolved
- * (no layout group involved).
- */
-export const RESULTS = {
-  /** `Image` — `win-art.png`, the trophy badge. `UIManager.OnWin`/`OnLoss`
-   * (`UIManager.cs:71-90`) show it on a win only — the scene's static rect
-   * is always-active, but the runtime script gates it, so this port shows
-   * it conditionally too rather than always drawing a trophy on a loss. */
-  trophy: { x: 234 + IP_X, y: 1043.51, w: 460.8, h: 460.8 },
-  resultText: { x: 194.4 + IP_X, y: 1504.31, w: 540, h: 115.2, fs: 96 },
-  detailText: { x: -158.4 + IP_X, y: 1639.31, w: 1245.6, h: 45, fs: 54 },
-  rebet: { x: -42.55 + IP_X, y: 1817.6, w: 466.26, h: 123.48, fs: 54 },
-  newRound: { x: 505.59 + IP_X, y: 1817.6, w: 465.7, h: 123.48, fs: 54 },
-} as const;
 
 /** `Cashout Retry` — shown when a post-round re-authenticate call fails.
  * Relabelled "Retry" here (the button is literally named `Rebet` in the
@@ -399,9 +384,19 @@ export const ERROR = {
 
 /** `Notification Panel` — a red toast, `GUI Rounded Edge Button.png` @
  * ppum 10 (radius 10.8). */
+/**
+ * `Notification Panel` — a red toast.
+ *
+ * The scene authors this as a 1200-wide panel at x=-60 on a 1080 canvas: 120px
+ * WIDER than the screen, bleeding off both edges so its `GUI Rounded Edge
+ * Button.png` corners fall outside the viewport and it reads as a square
+ * full-bleed banner. Inset to an almost-full-width card (40..1040, ~93% of the
+ * canvas) with a real corner radius so it reads as a floating toast.
+ */
 export const TOAST = {
-  panel: { x: -60, y: 157.66, w: 1200, h: 128 },
-  text: { x: -44, y: 165.66, w: 1168, h: 112, fs: 54 },
+  panel: { x: 40, y: 157.66, w: 1000, h: 128 },
+  text: { x: 72, y: 165.66, w: 936, h: 112, fs: 48 },
+  radius: 40,
 } as const;
 
 /**
@@ -467,8 +462,8 @@ export const HELP = {
    * is inset to clear it while staying centred on the canvas: 176 + 728/2 =
    * 540. `fs` drops to match the narrower box; the header additionally
    * shrink-to-fits, so a longer translation never wraps. */
-  header: { x: 176, y: 126.85, w: 728, h: 128, fs: 64 },
-  back: { x: 32, y: 126.85, w: 128, h: 128 },
+  header: { x: 200, y: 126.85, w: 680, h: 128, fs: 60 },
+  back: { x: 40, y: 142.85, w: 96, h: 96 },
   backGlyph: { x: 64, y: 158.85, w: 64, h: 64 },
   contentTop: 260,
   padX: 90,

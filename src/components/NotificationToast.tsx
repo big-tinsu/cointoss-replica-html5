@@ -1,6 +1,6 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import type { Notification } from "../state/gameEngine";
-import { C, R } from "../ui/design";
+import { C } from "../ui/design";
 import { Tmp } from "../ui/Sprite";
 
 import { useDesign } from "../ui/DesignContext";
@@ -10,16 +10,26 @@ import { useDesign } from "../ui/DesignContext";
  * and error per the scene's own literal tint (there is only one Notification
  * Panel GameObject in the source, no separate green info variant).
  *
- * Drawn as a flat tinted plate with the 9-slice corner radius, NOT as the
+ * Drawn as a flat tinted plate with a corner radius, NOT as the
  * `GUI Rounded Edge Button.png` bitmap: that art is a 256x256 WHITE rounded
  * square whose corner radius is 42% of its side, so stretching it to this
- * 960x108 panel turned it into a white oval that covered the red fill — and
- * the label, being white too, vanished into it. The scene draws this
- * `Sliced` at ppum 10, i.e. a flat fill with 10.8px corners. */
+ * panel turned it into a white oval that covered the red fill — and
+ * the label, being white too, vanished into it.
+ *
+ * The scene's own mobile rect is a 1200-wide panel at x=-60 on a 1080 canvas —
+ * i.e. wider than the screen, bleeding off both edges with square-looking
+ * corners. It now insets to an almost-full-width card with a visible radius
+ * (`TOAST.radius`), so it reads as a floating toast rather than a full-bleed
+ * banner. */
 export function NotificationToast({ notification }: { notification: Notification | null }) {
   const { TOAST } = useDesign();
   const { t } = useLanguage();
   if (!notification) return null;
+  // `message` is a translation key; `suffix` (amounts/currency) is appended
+  // verbatim so it never goes through the translation table.
+  const text = notification.suffix
+    ? `${t(notification.message)} ${notification.suffix}`
+    : t(notification.message);
   return (
     <div className="modal-fade">
       <div
@@ -30,11 +40,11 @@ export function NotificationToast({ notification }: { notification: Notification
           width: TOAST.panel.w,
           height: TOAST.panel.h,
           background: C.notifyRed,
-          borderRadius: R.notification,
+          borderRadius: TOAST.radius,
         }}
       />
       <Tmp rect={TOAST.text} fontSize={TOAST.text.fs} color={C.white}>
-        {t(notification.message)}
+        {text}
       </Tmp>
     </div>
   );

@@ -79,30 +79,49 @@ export function HelpModal({
         <Spr src={img("arrow-1-w")} rect={{ x: 0, y: 0, w: HELP.back.w, h: HELP.back.h }} />
       </button>
 
+      {/* `--canvas-w` is the VISIBLE width in design units and is frequently
+        * WIDER than the 1080 reference box (1442 at a 530x860 viewport, for
+        * instance). This used to sit at `left: 0` with that width, so the column
+        * ran from design x=0 to x=1442 while the visible area ran from x=-181 to
+        * x=1261 — the text was pushed right by half the overflow, leaving a dead
+        * gutter on the left and clipping every line off the right edge.
+        *
+        * Centred on the reference box the same way `.scrim` is, then the text
+        * column itself is capped at `bodyW` and auto-margined, so the copy stays
+        * centred and fully on-screen at any aspect ratio. */}
       <div
         className="node scroll-y"
         style={{
-          left: 0,
+          left: "50%",
           top: HELP.contentTop,
           width: "var(--canvas-w, 1080px)",
           height: `calc(var(--canvas-h, 2340px) - ${HELP.contentTop}px)`,
+          transform: "translateX(-50%)",
         }}
       >
-        {lines.map((line, i) => (
-          <p
-            key={i}
-            style={{
-              margin: "0 0 32px",
-              padding: `0 ${HELP.padX}px`,
-              fontSize: HELP.bodyFs,
-              lineHeight: 1.3,
-              color: i === 3 ? "#ff8a8a" : C.white,
-              fontWeight: i === 3 ? 700 : 400,
-            }}
-          >
-            {i + 1}. {line}
-          </p>
-        ))}
+        <div
+          style={{
+            maxWidth: HELP.bodyW + HELP.padX * 2,
+            margin: "0 auto",
+            padding: `0 ${HELP.padX}px`,
+            boxSizing: "border-box",
+          }}
+        >
+          {lines.map((line, i) => (
+            <p
+              key={i}
+              style={{
+                margin: "0 0 32px",
+                fontSize: HELP.bodyFs,
+                lineHeight: 1.3,
+                color: i === 3 ? "#ff8a8a" : C.white,
+                fontWeight: i === 3 ? 700 : 400,
+              }}
+            >
+              {i + 1}. {line}
+            </p>
+          ))}
+        </div>
       </div>
     </div>
   );
