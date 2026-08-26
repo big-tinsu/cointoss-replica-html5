@@ -364,27 +364,41 @@ input:focus {
  * the web). The currency code is a separate static label so the input itself
  * holds nothing but the number, which keeps caret behaviour and select-on-focus
  * sane; both are centred as a pair inside the field art. */
-.stake-currency {
+/* A flex row so the currency code and the number centre as one unit.
+ *
+ * The first pass faked that pairing by nudging each half with percentage
+ * `translateX()` hacks, which only lined up for one particular string length —
+ * any other stake pushed the code and the number apart or overlapped them. The
+ * input is sized in `ch` from its own value length (set inline by `BetPanel`),
+ * so the pair stays centred and correctly spaced at any amount. */
+.stake-row {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translateX(-32%);
-  pointer-events: none;
-}
-.stake-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  transform: translateX(12%);
+  gap: 0.28em;
   font-size: 42px;
   color: #022a40;
+  pointer-events: none;
+}
+.stake-currency {
+  flex: 0 0 auto;
+  user-select: none;
+}
+.stake-input {
+  flex: 0 0 auto;
+  min-width: 1.5ch;
+  max-width: 100%;
+  height: 100%;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
   background: none;
   border: 0;
-  /* Safari zooms the page when a focused input's text is under ~16 CSS px; the
-   * stage scale already keeps this comfortably above that, and the design-space
-   * font-size must not be overridden by the UA. */
+  pointer-events: auto;
+  /* The design-space font-size must not be re-scaled by the UA. */
   -webkit-text-size-adjust: 100%;
 }
 .stake-input:disabled {

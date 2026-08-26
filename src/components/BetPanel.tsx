@@ -3,7 +3,6 @@ import { playClick } from "../state/sfx";
 import type { PlayerSelection } from "../api/types";
 import { C, ui } from "../ui/design";
 import { Spr, Tmp } from "../ui/Sprite";
-import { useAutoFit } from "../ui/useAutoFit";
 
 import { useDesign } from "../ui/DesignContext";
 /**
@@ -55,7 +54,6 @@ export function BetPanel({
   const { CHIPS, CHOICE, STAKE_FIELD } = useDesign();
   const { t } = useLanguage();
   const shown = stakeText || String(stake);
-  const stakeRef = useAutoFit<HTMLInputElement>(42, 18, [shown]);
 
   return (
     <>
@@ -76,31 +74,31 @@ export function BetPanel({
         style={{ left: STAKE_FIELD.field.x, top: STAKE_FIELD.field.y, width: STAKE_FIELD.field.w, height: STAKE_FIELD.field.h }}
       >
         <Spr src={ui("stake-field")} rect={{ x: 0, y: 0, w: STAKE_FIELD.field.w, h: STAKE_FIELD.field.h }} />
-        <span
-          className="tmp nowrap stake-currency"
-          style={{ position: "absolute", inset: 0, fontSize: 42, color: "#022A40" }}
-        >
-          {currency}
-        </span>
-        <input
-          ref={stakeRef}
-          className="stake-input"
-          type="text"
-          inputMode="decimal"
-          autoComplete="off"
-          aria-label="Stake amount"
-          disabled={busy}
-          value={shown}
-          onChange={(e) => onStakeText(e.target.value)}
-          onFocus={(e) => e.currentTarget.select()}
-          onBlur={onCommitStake}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onCommitStake();
-              e.currentTarget.blur();
-            }
-          }}
-        />
+        <div className="stake-row">
+          <span className="stake-currency">{currency}</span>
+          <input
+            className="stake-input"
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            aria-label="Stake amount"
+            disabled={busy}
+            value={shown}
+            // Sized from the value's own length so the currency code and the
+            // number stay centred as a pair for any stake, rather than being
+            // nudged into place for one particular string width.
+            style={{ width: `${Math.max(shown.length, 1)}ch` }}
+            onChange={(e) => onStakeText(e.target.value)}
+            onFocus={(e) => e.currentTarget.select()}
+            onBlur={onCommitStake}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onCommitStake();
+                e.currentTarget.blur();
+              }
+            }}
+          />
+        </div>
       </div>
 
       {/* `Addition Button` / `Subtraction Button` — frame mobile-11 plate +

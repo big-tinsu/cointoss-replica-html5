@@ -94,6 +94,14 @@ function Game() {
 
   return (
     <CustomizationProvider customData={state.customization}>
+      {/* OUTSIDE `<Stage>` on purpose. The boot overlay is `position: fixed`,
+        * but `.stage` carries a `transform`, which makes it the containing block
+        * for fixed-position descendants — mounted inside, `inset: 0` resolved
+        * against the scaled 1080x2340 design box instead of the viewport, so the
+        * overlay stopped short of the screen edges and its `vw`/`svh` units were
+        * multiplied by the stage scale. As a sibling it covers the real
+        * viewport, exactly as it does in the other replicas. */}
+      {!bootDone && state.phase !== "fatal-error" && <ShacksLoadingScreen progress={progress} />}
       <Stage spec={canvas}>
         {/* z 1 — `background`: frame mobile-19. This illustrated altar scene is
          * the design's ground; there is no gradient anywhere in the scene.
@@ -113,7 +121,6 @@ function Game() {
           loading="eager"
         />
 
-        {!bootDone && state.phase !== "fatal-error" && <ShacksLoadingScreen progress={progress} />}
         {state.phase === "fatal-error" && <ErrorScreen message={state.fatalError ?? ""} />}
 
         {state.phase === "ready" && (
