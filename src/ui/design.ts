@@ -246,10 +246,17 @@ export const STAKE_FIELD = {
    * *overlapping* 540-wide boxes (left-aligned min / right-aligned max)
    * relying on Unity's shorter rendered text to keep them apart; at this
    * port's font metrics that overlap collided into unreadable glued text,
-   * so the two boxes are split at the field's midpoint instead — still
-   * left-aligned min / right-aligned max, just non-overlapping. */
-  minimum: { x: 117 + IP_X, y: 1505.66, w: 694.8 / 2, h: 86.4, fs: 48 },
-  maximum: { x: 117 + IP_X + 694.8 / 2, y: 1505.66, w: 694.8 / 2, h: 86.4, fs: 48 },
+   * so the two boxes are split at a midpoint instead — still left-aligned
+   * min / right-aligned max, just non-overlapping.
+   *
+   * The scene's own y (1505.66) also puts them 7px INSIDE the round
+   * stepper plates, whose bounding boxes end at 1305.86 + 207 = 1512.86 —
+   * the "+"/"-" circles visibly collided with the text. Dropped below the
+   * plates with a real gap, and widened to the full content column
+   * (`QuickBet`'s row width) so "max: CUR 500.00" no longer wraps inside a
+   * 347-wide half-field box. */
+  minimum: { x: -46.836 + IP_X, y: 1540, w: 1022.47 / 2, h: 64, fs: 42 },
+  maximum: { x: -46.836 + IP_X + 1022.47 / 2, y: 1540, w: 1022.47 / 2, h: 64, fs: 42 },
 } as const;
 
 /**
@@ -452,9 +459,17 @@ export const BET_HISTORY = {
  * the game-logic layer's earlier documented decision to consolidate).
  */
 export const HELP = {
-  header: { x: 90, y: 126.85, w: 900, h: 128, fs: 84 },
-  back: { x: 780, y: 127.85, w: 128, h: 128 },
-  backGlyph: { x: 812, y: 159.85, w: 64, h: 64 },
+  /** The scene centres an 900-wide header box on the canvas and drops the
+   * back arrow at x=780 — INSIDE it. "Welcome to Cointoss" at fs 84 renders
+   * ~875px wide here, so the arrow landed on top of the last word. The arrow
+   * moves to the left edge (where `Bet History`'s own back arrow already
+   * sits, and where a left-pointing `arrow-1-w` belongs), and the header box
+   * is inset to clear it while staying centred on the canvas: 176 + 728/2 =
+   * 540. `fs` drops to match the narrower box; the header additionally
+   * shrink-to-fits, so a longer translation never wraps. */
+  header: { x: 176, y: 126.85, w: 728, h: 128, fs: 64 },
+  back: { x: 32, y: 126.85, w: 128, h: 128 },
+  backGlyph: { x: 64, y: 158.85, w: 64, h: 64 },
   contentTop: 260,
   padX: 90,
   bodyFs: 40,
@@ -482,10 +497,3 @@ export const KEYPAD = {
   dot: { x: 861.56, y: 1640.5, w: 16, h: 16 },
 } as const;
 
-/** `PortraitOrientationWarning` — the one real orientation overlay of the
- * three sibling games (spec-confirmed live, per the game-logic layer's
- * earlier documented decision). */
-export const ORIENTATION = {
-  icon: { x: 476, y: 1106, w: 128, h: 128 },
-  text: { x: 190, y: 1470, w: 700, h: 90, fs: 24 },
-} as const;

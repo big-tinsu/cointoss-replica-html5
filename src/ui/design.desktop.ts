@@ -46,8 +46,13 @@ export const STAKE_FIELD = {
     increaseGlyph: {"x": 1537.7, "y": 303, "w": 50, "h": 50},
     decrease: { x: 1203.3, y: 278, w: 100, h: 100 },
     decreaseGlyph: {"x": 1228.3, "y": 303, "w": 50, "h": 50},
-    minimum: { x: 1078.74, y: 381.47, w: 300, h: 48, fs: 24 },
-    maximum: { x: 1448, y: 381.47, w: 300, h: 48, fs: 24 },
+    /** The scene's y (381.47) leaves only 3px between these and the round
+     * stepper plates above (278 + 100 = 378), so they read as glued to the
+     * "+"/"-" buttons. Dropped to sit clear of both the plates and the
+     * quick-bet grid below (first row at y=466), and widened to the stake
+     * field's own span so neither line wraps. */
+    minimum: { x: 1068, y: 400, w: 340, h: 40, fs: 24 },
+    maximum: { x: 1408, y: 400, w: 340, h: 40, fs: 24 },
   } as const;
 
 export const CHIPS = {
@@ -159,8 +164,10 @@ export const BET_HISTORY = {
 
 export const HELP = {
     header: { x: 510, y: 150, w: 900, h: 128, fs: 42 },
-    back: { x: 1620, y: 152, w: 128, h: 128 },
-    backGlyph: { x: 1620, y: 152, w: 128, h: 128 },
+    /** Moved from the right edge (x=1620) to match `Bet History`'s own back
+     * arrow — same left-pointing `arrow-1-w`, same corner. */
+    back: { x: 64, y: 150, w: 108, h: 108 },
+    backGlyph: { x: 64, y: 150, w: 108, h: 108 },
     body: { x: 128, y: 128, w: 1664, h: 952 },
     contentTop: 278,
     padX: 128,
@@ -187,7 +194,3 @@ export const KEYPAD = {
     dot: {"x": 1110.67, "y": 662.9, "w": 8, "h": 8},
   } as const;
 
-export const ORIENTATION = {
-    icon: { x: 832, y: 412, w: 256, h: 256 },
-    text: { x: 510, y: 790, w: 900, h: 180, fs: 36 },
-  } as const;

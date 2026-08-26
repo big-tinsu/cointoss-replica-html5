@@ -18,7 +18,6 @@ import { CashoutRetryModal } from "./components/CashoutRetryModal";
 import { HelpModal } from "./components/HelpModal";
 import { MenuPanel } from "./components/MenuPanel";
 import { BetHistoryPanel } from "./components/BetHistoryPanel";
-import { OrientationOverlay } from "./components/OrientationOverlay";
 import { CustomizationProvider } from "./components/Customizable";
 import { ShacksLoadingScreen } from "./loading/ShacksLoadingScreen";
 import { useAssetPreload } from "./loading/useAssetPreload";
@@ -34,8 +33,8 @@ function computeAnim(busy: boolean, isFlipping: boolean, flipOutcome: string | n
  * `background` (frame mobile-19, full-bleed) is drawn first, then
  * `Game Panel` (NavPanel/Ticker/GameView/BetPanel/ResultsPanel/
  * CashoutRetry/MenuPanel — all the live gameplay chrome), then the
- * top-level overlays (`Bet History`, `About`/Help, `PortraitOrientation
- * Warning`) each of which is a full-screen sibling of `Game Panel`, not
+ * top-level overlays (`Bet History`, `About`/Help), each of which is a
+ * full-screen sibling of `Game Panel`, not
  * nested inside it.
  */
 /**
@@ -104,7 +103,7 @@ function Game() {
                 that recentre had been applied, which left every element in
                 here — the header most visibly — 162.66px too low on Mobile.
                 Desktop's offset is (0,0). The Canvas-level siblings below
-                (Bet History / Help / orientation) are NOT in this layer. */}
+                (Bet History / Help) are NOT in this layer. */}
             <div
               className="node"
               style={{
@@ -182,8 +181,6 @@ function Game() {
             />
 
             <HelpModal visible={state.helpVisible} oddsOne={state.oddsOne} onClose={actions.toggleHelp} />
-
-            <OrientationOverlay />
           </>
         )}
       </Stage>

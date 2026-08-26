@@ -1,7 +1,8 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
 import { C, img } from "../ui/design";
-import { Spr, Tmp } from "../ui/Sprite";
+import { Spr } from "../ui/Sprite";
+import { useAutoFit } from "../ui/useAutoFit";
 
 import { useDesign } from "../ui/DesignContext";
 /**
@@ -24,6 +25,11 @@ export function HelpModal({
 }) {
   const { HELP } = useDesign();
   const { t } = useLanguage();
+  const title = t("Welcome to Cointoss");
+  // TMP's own shrink-to-fit: the header box is inset to clear the back arrow,
+  // so a longer translation scales down inside it rather than wrapping onto a
+  // second line or colliding with the arrow.
+  const titleRef = useAutoFit<HTMLSpanElement>(HELP.header.fs, 32, [visible, title, HELP.header.fs, HELP.header.w]);
   if (!visible) return null;
 
   const lines = [
@@ -42,9 +48,24 @@ export function HelpModal({
   return (
     <div className="modal-fade">
       <div className="scrim" style={{ background: C.historyPurple }} />
-      <Tmp rect={HELP.header} fontSize={HELP.header.fs} color={C.white} bold>
-        {t("Welcome to Cointoss")}
-      </Tmp>
+      <span
+        ref={titleRef}
+        className="tmp nowrap"
+        style={{
+          left: HELP.header.x,
+          top: HELP.header.y,
+          width: HELP.header.w,
+          height: HELP.header.h,
+          fontSize: HELP.header.fs,
+          fontWeight: 700,
+          color: C.white,
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        {title}
+      </span>
       <button
         type="button"
         className="btn press"

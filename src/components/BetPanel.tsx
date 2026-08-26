@@ -24,6 +24,8 @@ import { useDesign } from "../ui/DesignContext";
  */
 /** `Pays {n}x` on both choice buttons — an even-money coin toss. */
 const PAYOUT_MULTIPLIER = 2;
+/** `QuickBet`'s two `HorizontalLayoutGroup` rows hold 4 chips each. */
+const QUICKBET_PER_ROW = 4;
 
 export function BetPanel({
   currency,
@@ -136,18 +138,33 @@ export function BetPanel({
         />
       </button>
 
-      <Tmp rect={{ x: STAKE_FIELD.minimum.x, y: STAKE_FIELD.minimum.y, w: STAKE_FIELD.minimum.w, h: STAKE_FIELD.minimum.h }} fontSize={STAKE_FIELD.minimum.fs} align="left">
+      {/* `minimum`/`maximum` — `nowrap`, since these sit in a band between
+       * the stepper plates and the quick-bet grid that has room for one line
+       * only; a long currency code shrinks the glyphs rather than wrapping
+       * into the row below. */}
+      <Tmp className="nowrap" rect={{ x: STAKE_FIELD.minimum.x, y: STAKE_FIELD.minimum.y, w: STAKE_FIELD.minimum.w, h: STAKE_FIELD.minimum.h }} fontSize={STAKE_FIELD.minimum.fs} align="left">
         {t("min")}: {currency} {minimum.toFixed(2)}
       </Tmp>
-      <Tmp rect={{ x: STAKE_FIELD.maximum.x, y: STAKE_FIELD.maximum.y, w: STAKE_FIELD.maximum.w, h: STAKE_FIELD.maximum.h }} fontSize={STAKE_FIELD.maximum.fs} align="right">
+      <Tmp className="nowrap" rect={{ x: STAKE_FIELD.maximum.x, y: STAKE_FIELD.maximum.y, w: STAKE_FIELD.maximum.w, h: STAKE_FIELD.maximum.h }} fontSize={STAKE_FIELD.maximum.fs} align="right">
         {t("max")}: {currency} {maximum.toFixed(2)}
       </Tmp>
 
-      {/* `QuickBet` — two 4-chip rows, frame mobile-14. */}
+      {/* `QuickBet` — two 4-chip rows, frame mobile-14.
+       *
+       * The scene authors both rows as `HorizontalLayoutGroup`s with
+       * `childForceExpandWidth`, so a row holding fewer than 4 chips still
+       * distributes them across the full row width rather than stacking them
+       * against its left edge. `QUICK_BET_BUTTON_COUNT` is 5, so the second
+       * row holds exactly one chip — pinned at `col * pitch` it sat hard
+       * left, out of line with everything else. Each row is instead centred
+       * on the container by its own chip count. */}
       {quickBetValues.map((chip, i) => {
-        const row = i < 4 ? 0 : 1;
-        const col = i % 4;
-        const x = CHIPS.rowX + col * (CHIPS.w + CHIPS.spacing);
+        const row = i < QUICKBET_PER_ROW ? 0 : 1;
+        const col = i % QUICKBET_PER_ROW;
+        const rowCount = Math.min(quickBetValues.length - row * QUICKBET_PER_ROW, QUICKBET_PER_ROW);
+        const rowContentW = rowCount * CHIPS.w + (rowCount - 1) * CHIPS.spacing;
+        const rowStartX = CHIPS.rowX + (CHIPS.rowW - rowContentW) / 2;
+        const x = rowStartX + col * (CHIPS.w + CHIPS.spacing);
         const y = row === 0 ? CHIPS.firstRowY : CHIPS.secondRowY;
         return (
           <button

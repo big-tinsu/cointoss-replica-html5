@@ -411,19 +411,6 @@ input:focus {
   }
 }
 
-/* ----------------------------------------------------- orientation overlay */
-.orientation-icon {
-  animation: orientation-spin 1.6s ease-in-out infinite;
-}
-@keyframes orientation-spin {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(90deg);
-  }
-}
 
 /* -------------------------------------------------------------- scrollers */
 .scroll-y {

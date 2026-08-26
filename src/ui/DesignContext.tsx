@@ -35,7 +35,6 @@ export type DesignTokens = {
   BET_HISTORY: typeof mobile.BET_HISTORY;
   HELP: typeof mobile.HELP;
   KEYPAD: typeof mobile.KEYPAD;
-  ORIENTATION: typeof mobile.ORIENTATION;
 };
 
 function bundle(isDesktop: boolean): DesignTokens {
@@ -61,7 +60,6 @@ function bundle(isDesktop: boolean): DesignTokens {
     BET_HISTORY: s.BET_HISTORY,
     HELP: s.HELP,
     KEYPAD: s.KEYPAD,
-    ORIENTATION: s.ORIENTATION,
   };
 }
 

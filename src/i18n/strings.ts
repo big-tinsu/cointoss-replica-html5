@@ -139,8 +139,4 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   Start: "Start",
   min: "min",
   max: "max",
-  "For the best experience, rotate your device to portrait. To play in landscape, reload while holding your device sideways or wait until this round ends.":
-    "For the best experience, rotate your device to portrait. To play in landscape, reload while holding your device sideways or wait until this round ends.",
-  "For the best experience, rotate your device to landscape. To play in portrait, reload while holding your device upright or wait until this round ends.":
-    "For the best experience, rotate your device to landscape. To play in portrait, reload while holding your device upright or wait until this round ends.",
 };
