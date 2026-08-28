@@ -1,26 +1,15 @@
 import { useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
-import { playClick, setMuted } from "../state/sfx";
-import { C, img } from "../ui/design";
-import { TintSpr, Tmp } from "../ui/Sprite";
-
+import { playClick } from "../state/sfx";
 import { useDesign } from "../ui/DesignContext";
+import { UnifiedMenu } from "../ui/unified";
+
 /**
- * `MenuPanel` (spec §5) — a near-full-bleed translucent purple overlay
- * (not a slide-in side drawer), opened by `NavPanel`'s single `MenuButton`.
- * Three rows on a 240px pitch: `About Button` ("How To Play", opens Help),
- * `BetHistoryButton` ("Bet History"), and `unmute`/`mute` — two full
- * alternate-state GameObjects in the scene, reproduced here as one row that
- * swaps icon/label locally and gates this port's click-sound (see
- * `state/sfx.ts`).
+ * Adapter onto the shared `UnifiedMenu` (see `src/ui/unified/`).
  *
- * `image.png` (the row-icon sprite driving both the close X and the
- * About/Bet-History icons) is a multi-icon placeholder sheet in the source
- * — its filename and composite content (a "?" bubble plus an unrelated
- * bar-chart glyph in one texture) read as a design placeholder rather than
- * per-context art, and the extraction doesn't decode which sub-region each
- * usage draws. Purpose-fit stand-ins are used instead (see README, "What
- * could not be matched exactly").
+ * The hamburger drawer is one of the three chrome surfaces unified across
+ * all eleven games, so it no longer renders against this game's `MENU` scene
+ * rects — the kit owns palette, type scale and layout.
  */
 export function MenuPanel({
   visible,
@@ -33,119 +22,36 @@ export function MenuPanel({
   onHelp: () => void;
   onBetHistory: () => void;
 }) {
-  const { MENU } = useDesign();
-  const { t } = useLanguage();
-  const [muted, setMutedState] = useState(false);
-  if (!visible) return null;
+  const { canvas } = useDesign();
+  const { t, languages, currentLanguage, setLanguage } = useLanguage();
+  const [muted, setMuted] = useState(false);
 
-  const rows = [
-    {
-      key: "about",
-      icon: "circle",
-      tint: C.menuIconBlue,
-      label: t("How To Play"),
-      onClick: () => {
-        playClick();
-        onHelp();
-        onClose();
-      },
-    },
-    {
-      key: "history",
-      icon: "circle",
-      tint: C.menuIconBlue,
-      label: t("Bet History"),
-      onClick: () => {
-        playClick();
-        onBetHistory();
-        onClose();
-      },
-    },
-    {
-      key: "sound",
-      icon: muted ? "volume-off" : "volume",
-      tint: C.soundBadge,
-      label: t("Sound"),
-      onClick: () => {
-        playClick();
-        setMuted(!muted);
-        setMutedState(!muted);
-      },
-    },
-  ];
+  const list = languages.length > 0 ? languages : [{ code: "en", language: "English" }];
+
+  const click = (fn: () => void) => () => {
+    playClick();
+    fn();
+  };
 
   return (
-    <div className="modal-fade">
-      {/* Two layers, matching the scene: `MenuPanel`'s own black wash over the
-          game, then `MenuPanel/Panel` — the drawer plate. Previously a SINGLE
-          full-screen wash was drawn in the drawer's purple at its alpha, so
-          the drawer never existed as its own surface and the game showed
-          straight through the menu. The plate is opaque here (the scene has it
-          at 61%) so the drawer reads as a solid surface. */}
-      <div className="scrim" style={{ background: C.menuScrimBlack }} />
-      <div
-        className="node"
-        style={{
-          left: MENU.drawer.x,
-          top: MENU.drawer.y,
-          width: MENU.drawer.w,
-          height: MENU.drawer.h,
-          background: C.menuPurple,
-        }}
-      />
-
-      <button
-        type="button"
-        className="btn press"
-        style={{ left: MENU.close.x, top: MENU.close.y, width: MENU.close.w, height: MENU.close.h }}
-        onClick={() => {
-          playClick();
-          onClose();
-        }}
-        aria-label={t("Close")}
-      >
-        <Tmp rect={{ x: 0, y: 0, w: MENU.close.w, h: MENU.close.h }} fontSize={56} color={C.white}>
-          ×
-        </Tmp>
-      </button>
-
-      {rows.map((row, i) => {
-        const rowTop = MENU.firstRowY + i * MENU.rowPitch;
-        return (
-          <button
-            key={row.key}
-            type="button"
-            className="btn press"
-            style={{ left: MENU.rowX, top: rowTop, width: MENU.rowW, height: MENU.rowH }}
-            onClick={row.onClick}
-          >
-            {i < rows.length - 1 && (
-              <div
-                className="node"
-                style={{ left: MENU.lineX - MENU.rowX, top: MENU.lineDy, width: MENU.lineW, height: 4, background: C.white }}
-              />
-            )}
-            <TintSpr
-              src={img(row.icon)}
-              tint={row.tint}
-              rect={{ x: MENU.iconX - MENU.rowX, y: MENU.iconDy, w: MENU.iconSize, h: MENU.iconSize }}
-            />
-            <Tmp
-              rect={{ x: MENU.textX - MENU.rowX, y: MENU.textDy, w: MENU.textW, h: 64 }}
-              fontSize={MENU.textFs}
-              color={C.white}
-              align="left"
-            >
-              {row.label}
-            </Tmp>
-            <TintSpr
-              src={img("arrow-1-e")}
-              tint={C.white}
-              rect={{ x: MENU.arrowX - MENU.rowX, y: MENU.arrowDy, w: MENU.arrowSize, h: MENU.arrowSize }}
-            />
-          </button>
-        );
-      })}
-    </div>
+    <UnifiedMenu
+      visible={visible}
+      canvas={canvas}
+      muted={muted}
+      languages={list}
+      currentLanguageCode={currentLanguage.code}
+      onSelectLanguage={(code) => {
+        const lang = list.find((l) => l.code === code);
+        if (lang) void setLanguage(lang);
+      }}
+      onOpenHowToPlay={click(onHelp)}
+      onOpenBetHistory={click(onBetHistory)}
+      onToggleMute={() => {
+        playClick();
+        setMuted((m) => !m);
+      }}
+      onClose={onClose}
+      t={t}
+    />
   );
 }
