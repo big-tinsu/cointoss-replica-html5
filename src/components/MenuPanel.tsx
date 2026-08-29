@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { useDesign } from "../ui/DesignContext";
 import { UnifiedMenu } from "../ui/unified";
 
 /**
@@ -22,7 +21,6 @@ export function MenuPanel({
   onHelp: () => void;
   onBetHistory: () => void;
 }) {
-  const { canvas } = useDesign();
   const { t, languages, currentLanguage, setLanguage } = useLanguage();
   const [muted, setMuted] = useState(false);
 
@@ -36,7 +34,6 @@ export function MenuPanel({
   return (
     <UnifiedMenu
       visible={visible}
-      canvas={canvas}
       muted={muted}
       languages={list}
       currentLanguageCode={currentLanguage.code}

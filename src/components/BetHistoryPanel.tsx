@@ -1,8 +1,7 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import type { BetRecordData, Pagination } from "../api/types";
 import { img } from "../ui/design";
-import { useDesign } from "../ui/DesignContext";
-import { UnifiedBetHistory, metrics } from "../ui/unified";
+import { UnifiedBetHistory } from "../ui/unified";
 import type { UBetRow } from "../ui/unified";
 
 /**
@@ -59,10 +58,11 @@ export function BetHistoryPanel({
   onClose: () => void;
   onPageChange: (page: number) => void;
 }) {
-  const { canvas } = useDesign();
   const { t } = useLanguage();
 
-  const coinSize = metrics(canvas.refW, canvas.refH).pt * 26;
+  
+  // Face icon size, in real px like the rest of the shared row.
+  const coinSize = 26;
 
   const rows: UBetRow[] = history.map((record, i) => {
     const outcome = outcomeOf(record);
@@ -90,7 +90,6 @@ export function BetHistoryPanel({
   return (
     <UnifiedBetHistory
       visible={visible}
-      canvas={canvas}
       rows={rows}
       loading={loading}
       page={pagination?.currentPage}

@@ -2,7 +2,6 @@ import { U, U_FONT } from "./tokens";
 import { ACCENT, ACCENT_SOFT } from "./accent";
 import { UBody, UHeader, UOverlay, URow, USurface } from "./primitives";
 import { useUnified } from "./scale";
-import type { Canvas } from "./scale";
 import { UHelpIcon, UHistoryIcon, UInfoIcon, ULanguageIcon, UPersonIcon, UPitchIcon, UShirtIcon, USoundIcon, UTrophyIcon } from "./icons";
 
 /**
@@ -25,7 +24,6 @@ const EXTRA_ICONS = {
 
 export function UnifiedMenu({
   visible,
-  canvas,
   username,
   muted,
   languages,
@@ -42,7 +40,6 @@ export function UnifiedMenu({
   t = (s) => s,
 }: {
   visible: boolean;
-  canvas: Canvas;
   /** Omitted by games whose drawer has no identity row. */
   username?: string;
   muted: boolean;
@@ -69,7 +66,7 @@ export function UnifiedMenu({
   onClose: () => void;
   t?: (s: string) => string;
 }) {
-  const m = useUnified(canvas);
+  const m = useUnified();
   if (!visible) return null;
 
   const iconSize = m.fs.title;
@@ -156,8 +153,8 @@ export function UnifiedMenu({
                 aria-hidden="true"
                 style={{
                   flex: "0 0 auto",
-                  width: m.pt * 30,
-                  height: m.pt * 18,
+                  width: 30,
+                  height: 18,
                   borderRadius: 999,
                   background: muted ? U.border : ACCENT,
                   position: "relative",
@@ -167,10 +164,10 @@ export function UnifiedMenu({
                 <span
                   style={{
                     position: "absolute",
-                    top: m.pt * 2,
-                    left: muted ? m.pt * 2 : m.pt * 14,
-                    width: m.pt * 14,
-                    height: m.pt * 14,
+                    top: 2,
+                    left: muted ? 2 : 14,
+                    width: 14,
+                    height: 14,
                     borderRadius: "50%",
                     background: U.onAccent,
                     transition: "left 120ms",

@@ -3,7 +3,6 @@ import { U } from "./tokens";
 import { ACCENT } from "./accent";
 import { UBody, UEmpty, UHeader, UOverlay, USurface } from "./primitives";
 import { useUnified } from "./scale";
-import type { Canvas } from "./scale";
 import { UChevronLeftIcon, UChevronRightIcon, UEmptyIcon } from "./icons";
 
 /**
@@ -44,7 +43,6 @@ const STATUS_COLOR: Record<UBetRow["status"], string> = {
 /** Unified bet-history page — identical in all eleven games. */
 export function UnifiedBetHistory({
   visible,
-  canvas,
   rows,
   loading,
   error,
@@ -55,7 +53,6 @@ export function UnifiedBetHistory({
   t = (s) => s,
 }: {
   visible: boolean;
-  canvas: Canvas;
   rows: UBetRow[];
   loading?: boolean;
   /** Shown in place of the empty state when a fetch failed. */
@@ -66,7 +63,7 @@ export function UnifiedBetHistory({
   onClose: () => void;
   t?: (s: string) => string;
 }) {
-  const m = useUnified(canvas);
+  const m = useUnified();
   if (!visible) return null;
 
   const paged = !!(page && totalPages && totalPages > 1 && onPageChange);
@@ -79,7 +76,7 @@ export function UnifiedBetHistory({
         {rows.length === 0 ? (
           <UEmpty
             m={m}
-            icon={<UEmptyIcon size={m.pt * 64} color={error ? U.lost : U.textFaint} />}
+            icon={<UEmptyIcon size={64} color={error ? U.lost : U.textFaint} />}
             title={error ? t(error) : loading ? "…" : t("No bet history to display")}
             hint={error || loading ? undefined : t("Start a game to display bet history")}
           />

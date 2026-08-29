@@ -2,7 +2,6 @@ import { U } from "./tokens";
 import { ACCENT, ACCENT_SOFT } from "./accent";
 import { UBody, UHeader, UOverlay, USurface } from "./primitives";
 import { useUnified } from "./scale";
-import type { Canvas } from "./scale";
 
 /**
  * One block of help copy.
@@ -25,7 +24,6 @@ export type UHelpBlock =
 /** Unified "How to play" page — identical in all eleven games. */
 export function UnifiedHowToPlay({
   visible,
-  canvas,
   blocks,
   bullets,
   footer,
@@ -33,7 +31,6 @@ export function UnifiedHowToPlay({
   t = (s) => s,
 }: {
   visible: boolean;
-  canvas: Canvas;
   /** Full structure. Takes precedence over `bullets`. */
   blocks?: UHelpBlock[];
   /** Convenience for games whose copy is a flat numbered list. */
@@ -43,7 +40,7 @@ export function UnifiedHowToPlay({
   onClose: () => void;
   t?: (s: string) => string;
 }) {
-  const m = useUnified(canvas);
+  const m = useUnified();
   if (!visible) return null;
 
   const items: UHelpBlock[] =
@@ -104,8 +101,8 @@ export function UnifiedHowToPlay({
                     flex: "0 0 auto",
                     display: "grid",
                     placeItems: "center",
-                    width: m.pt * 26,
-                    height: m.pt * 26,
+                    width: 26,
+                    height: 26,
                     borderRadius: "50%",
                     background: warn ? "rgba(229, 72, 77, 0.14)" : ACCENT_SOFT,
                     border: `1px solid ${warn ? U.lost : ACCENT}`,
@@ -127,7 +124,7 @@ export function UnifiedHowToPlay({
                     lineHeight: 1.4,
                     whiteSpace: "pre-wrap",
                     textAlign: "left",
-                    paddingTop: m.pt * 3,
+                    paddingTop: 3,
                   }}
                 >
                   {block.text}

@@ -1,6 +1,5 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { playClick } from "../state/sfx";
-import { useDesign } from "../ui/DesignContext";
 import { UnifiedHowToPlay } from "../ui/unified";
 import type { UHelpBlock } from "../ui/unified";
 
@@ -22,7 +21,6 @@ export function HelpModal({
   oddsOne: number;
   onClose: () => void;
 }) {
-  const { canvas } = useDesign();
   const { t } = useLanguage();
 
   const blocks: UHelpBlock[] = [
@@ -46,7 +44,6 @@ export function HelpModal({
   return (
     <UnifiedHowToPlay
       visible={visible}
-      canvas={canvas}
       blocks={blocks}
       footer={t("RTP is 95%")}
       onClose={() => {

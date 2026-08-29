@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { U, U_FONT } from "./tokens";
-import type { UMetrics } from "./tokens";
+import type { UMetrics } from "./scale";
 import { UBackIcon, UCloseIcon } from "./icons";
 import { ensureStyles } from "./styles";
 
@@ -14,11 +15,21 @@ import { ensureStyles } from "./styles";
  * render identically over eleven different scene coordinate systems.
  */
 
-/** Full-canvas layer + dismiss scrim. */
+/**
+ * Full-screen layer + dismiss scrim.
+ *
+ * Portalled to `document.body` so it escapes the game's `Stage`, which
+ * applies a `transform: scale()` to a fixed reference-resolution box. Left
+ * inside that box the overlay is laid out in design space: the scrim covers
+ * the reference box rather than the screen, and on any viewport whose aspect
+ * differs from the design's it is clipped on both sides. Out here it gets
+ * real viewport pixels at any scene scale — the same treatment ReelWheel
+ * already used for its own modals.
+ */
 export function UOverlay({
   onDismiss,
   align = "left",
-  zIndex = 80,
+  zIndex = 2000,
   children,
   label,
 }: {
@@ -30,11 +41,13 @@ export function UOverlay({
   label: string;
 }) {
   ensureStyles();
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       className="u-kit"
       style={{
-        position: "absolute",
+        position: "fixed",
         inset: 0,
         zIndex,
         fontFamily: U_FONT,
@@ -60,7 +73,8 @@ export function UOverlay({
         }}
       />
       {children}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

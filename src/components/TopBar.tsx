@@ -77,7 +77,7 @@ export function TopBar({
           playClick();
           onMenu();
         }}
-        aria-label={t("Select Language")}
+        aria-label={t("Menu")}
       >
         <Spr src={ui("menu-button")} rect={{ x: 0, y: 0, w: NAV.menuButton.w, h: NAV.menuButton.h }} />
         <TintSpr
