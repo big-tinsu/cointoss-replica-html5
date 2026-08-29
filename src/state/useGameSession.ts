@@ -1,29 +1,30 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import type { PlayerSelection } from "../api/types";
-import { GameEngine, type GameSnapshot } from "./gameEngine";
+import { INTEGRATION } from "../api/integration";
+import { GameEngine } from "./gameEngine";
+import { PartnerGameEngine } from "./partnerGameEngine";
+import type { GameEngineLike, GameSession } from "./sessionContract";
 
-export interface GameSession {
-  state: GameSnapshot;
-  actions: {
-    chooseAndBet: (choice: PlayerSelection) => void;
-    setStakeText: (raw: string) => void;
-    commitStake: () => void;
-    addChip: (amount: number) => void;
-    stepStake: (delta: number) => void;
-    dismissInsufficientFunds: () => void;
-    retryReAuthenticate: () => void;
-    toggleHelp: () => void;
-    refreshBetHistory: (page: number) => void;
-  };
+export type { GameSession } from "./sessionContract";
+
+/**
+ * Builds the engine for the integration this bundle was built for.
+ *
+ * Both classes satisfy `GameEngineLike` and produce the identical
+ * `GameSnapshot`, so everything above this line is integration-agnostic —
+ * flipping `VITE_INTEGRATION` swaps the entire backend contract without a
+ * single component changing. `INTEGRATION` is a build-time constant, so the
+ * unused engine and its client are tree-shaken out of the bundle.
+ */
+function createEngine(): GameEngineLike {
+  return INTEGRATION === "aggregator" ? new GameEngine() : new PartnerGameEngine();
 }
 
-/** One `GameEngine` per app lifetime, exposed to React via
- * `useSyncExternalStore` so every subscribed component re-renders exactly
- * when the snapshot actually changes — no prop drilling, no context needed
- * for the hot game-loop state. */
+/** One engine per app lifetime, exposed to React via `useSyncExternalStore` so
+ * every subscribed component re-renders exactly when the snapshot actually
+ * changes — no prop drilling, no context needed for the hot game-loop state. */
 export function useGameSession(): GameSession {
-  const engineRef = useRef<GameEngine | null>(null);
-  if (!engineRef.current) engineRef.current = new GameEngine();
+  const engineRef = useRef<GameEngineLike | null>(null);
+  if (!engineRef.current) engineRef.current = createEngine();
   const engine = engineRef.current;
 
   const state = useSyncExternalStore(engine.subscribe, engine.getSnapshot);

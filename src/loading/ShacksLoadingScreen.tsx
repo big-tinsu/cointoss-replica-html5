@@ -1,6 +1,5 @@
+import { assetUrl } from "../assetUrl";
 import "./shacks-loading.css";
-
-const BASE = import.meta.env.BASE_URL;
 
 interface ShacksLoadingScreenProps {
   /** 0-100. Driven by `useAssetPreload` — the asset queue plus the game's
@@ -29,7 +28,7 @@ export function ShacksLoadingScreen({ progress = 0 }: ShacksLoadingScreenProps) 
   return (
     <div className="shacks-loading-screen">
       <img
-        src={`${BASE}loading-screen/shacks-logo.png`}
+        src={assetUrl("loading-screen/shacks-logo.png")}
         alt="Shacks Evolution Studios"
         className="shacks-company-logo"
       />

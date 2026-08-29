@@ -1,8 +1,8 @@
 // Vercel serverless entry point for the mock aggregator — PREVIEW/TESTING ONLY.
 //
-// Why this exists: the real token exchange
-// (`POST https://portal.shacksevo.co/api/v2/partner/agg/token`) currently
-// returns `500 {"status":false,"message":"Unexpected number in JSON at
+// Why this exists: the token exchange at the previous default host
+// (`POST https://portal.shacksevo.co/api/v2/partner/agg/token`) returns
+// `500 {"status":false,"message":"Unexpected number in JSON at
 // position 1"}` for every launch. That failure is server-side and downstream of
 // decryption — the backend decrypts our URL *and* the partner's `clientId`
 // successfully, then throws parsing the clientId's own pipe-delimited
@@ -18,7 +18,9 @@
 //
 //   - The client only targets it when the launch URL carries `?mock=1`
 //     (`isMockBackend()` in `src/api/urlParams.ts`). A normal launch still goes
-//     to `portal.shacksevo.co`, untouched.
+//     to the configured aggregator (`VITE_AGGREGATOR_TOKEN_HOST`, defaulting to
+//     `game.shacksevo.co/user/api/v2`), untouched. The flag outranks that
+//     variable, so a preview works whatever it is set to.
 //   - Its routes live under `/api/mock/**`, never at the real `/api/v2/**`
 //     contract paths, so it cannot shadow the production contract even if the
 //     game were pointed at this origin.

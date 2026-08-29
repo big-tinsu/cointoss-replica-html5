@@ -48,11 +48,16 @@ including the server-authoritative three-outcome RNG.
 
 ### Previewing a deploy with `?mock=1`
 
-A deployed build normally posts its token exchange to
-`https://portal.shacksevo.co/api/v2/partner/agg/token`. That endpoint currently
-returns `500 {"status":false,"message":"Unexpected number in JSON at position
-1"}` for every launch, and a failed token is fatal (`gameEngine.ts` →
-`phase: "fatal-error"`), so the deploy cannot be previewed at all.
+A deployed build posts its token exchange to
+`$VITE_AGGREGATOR_TOKEN_HOST/partner/agg/token`, defaulting to
+`https://game.shacksevo.co/user/api/v2` when that variable is unset (see
+`.env.example`).
+
+This escape hatch exists because the previous default,
+`https://portal.shacksevo.co/api/v2/partner/agg/token`, returns
+`500 {"status":false,"message":"Unexpected number in JSON at position 1"}` for
+every launch, and a failed token is fatal (`gameEngine.ts` →
+`phase: "fatal-error"`), so a deploy pointed at it cannot be previewed at all.
 
 The failure is server-side and downstream of decryption — the backend decrypts
 our `url` **and** the partner's `clientId` successfully, then throws parsing the
@@ -95,6 +100,50 @@ Token validation is shape-based rather than `Set`-backed under
 exchange and the authenticate call that follows it are separate requests and
 would otherwise 401 whenever the second missed the first one's instance.
 
+## Two integrations: partner and aggregator
+
+The same game is served to two classes of betting client, over genuinely
+different APIs. `VITE_INTEGRATION` picks which one a build speaks:
+
+| | partner (**default**) | aggregator (`VITE_INTEGRATION=aggregator`) |
+| --- | --- | --- |
+| Contract | `docs/PARTNER_API_INTEGRATION.md` | `docs/AGGREGATOR_API_INTEGRATION.md` |
+| Launch params | `?clientId=<slug>-<AES_HEX>` **required**, `?lang=` | none required, `?language=` |
+| Token | `GET {serverBase}/api/v2/partner/fe/token`, `clientId` **header** | `POST {tokenHost}/partner/agg/token`, encrypted href in the body |
+| Server base | decrypted out of `clientId` | `VITE_AGGREGATOR_TOKEN_HOST` |
+| Authenticate | `th-authenticate-player`, nested envelope | `agg-authenticate`, reused for every settle |
+| A round | **one** call — `th-place-bet` resolves it and returns the new balance | **four** — place-bet → actions → animate → authenticate |
+| Session | none | a `sessionId` that rotates on every authenticate |
+| Stake limits | not sent; derived client-side | `aggregatorCurrency.minimum`/`.maximum` |
+| History key | decrypted `meta.playerId` | current `sessionId` |
+| Extras | leaderboard (§5) | `openRound` recovery, demo-mode wallet |
+
+Everything above `useGameSession` is written against one shared contract,
+`src/state/sessionContract.ts`, so the swap costs no component changes:
+
+```
+src/state/sessionContract.ts   GameSnapshot + GameSession + GameEngineLike — the shared shape
+src/state/gameEngine.ts        aggregator implementation
+src/state/partnerGameEngine.ts partner implementation
+src/state/useGameSession.ts    picks one on VITE_INTEGRATION
+src/api/client.ts              aggregator endpoints
+src/api/partnerClient.ts       partner endpoints
+```
+
+Both engines `implements GameEngineLike` and seed from the same
+`initialSnapshot()`, so a field added to one integration without the other is a
+compile error rather than a runtime hole in whichever build you were not
+testing. `INTEGRATION` is a build-time constant, so the unselected engine and
+its API client are tree-shaken out entirely — a partner bundle contains no
+`agg-*` path, and vice versa.
+
+The mock backend serves **both** contracts side by side (partner routes are
+`.../fe/token` and `bet-placed/th-*`; aggregator routes are `.../agg/token` and
+`bet-placed/agg-*`) over one wallet and one history, so switching integrations
+in dev carries the balance over. In dev a partner launch with no `clientId`
+falls back to this origin; in a real build a missing `clientId` is fatal, per
+the spec.
+
 ## How the port maps to the Unity project
 
 | Unity | Here |
@@ -129,7 +178,7 @@ architecture, spec §4):
 | Place bet | `POST {baseUrl}bet-placed/agg-place-bet` — encrypted `{sessionId, difficulties:"none", amountPlaced, selection}`. Escrows the bet; the RNG has NOT run yet. |
 | Resolve | `POST {baseUrl}bet-placed/agg-actions` — encrypted `{sessionId, selection}`, fired automatically the instant place-bet succeeds with zero player action. Response decrypts to `{data:{event:[OutcomeResult]}}` — this is the one call whose response carries the server-decided `head`/`tail`/`side` outcome. |
 | Abandoned-round settle | `POST {baseUrl}bet-placed/agg-manual-actions` — encrypted `{sessionId}`. NOT a live cashout button (see below); only ever called automatically from boot's reconciliation path. |
-| Bet history | `GET {mainUrlBase}/api/v1/bet-placed/partner/user/{sessionId}/{gameType}?aggregator=true&limit=10&page={n}` — keyed off **`sessionId`** (not `userId`), carries the `aggregator=true` flag. Both unique to this game vs. Penaldo/Keno. |
+| Bet history | `GET {mainUrlBase}/api/v1/bet-placed/partner/user/{sessionId}/{gameType}?aggregator=true&limit=20&page={n}` — keyed off **`sessionId`** (not `userId`), carries the `aggregator=true` flag. Both unique to this game vs. Penaldo/Keno. |
 | Languages | `GET /lang/api/v1/languages`, `GET /lang/api/v1/languages/{code}?texts=[...]` — stubbed locally instead of `game.shacksevo.co` |
 
 Notes carried over verbatim:
@@ -271,7 +320,8 @@ Simplified rather than skipped:
 - **Font** — `Assets/Fonts/bestime/Bestime.ttf`'s bundled `More Info.txt`
   states *"This product 100% free for personal use & commercial use"* — an
   explicitly permissive license, so the real font file is embedded
-  (`public/fonts/Bestime.ttf`, `@font-face` in `index.css`) with a bold
+  (`public/fonts/Bestime.ttf`, registered at runtime by `src/ui/fonts.ts` so
+  its URL follows `VITE_BASE_PATH`) with a bold
   system-font fallback stack for environments where it fails to load.
 - **Sound** — only `Button Click.wav` is ported (`public/assets/sound/
   button-click.wav`), the one clip with a confirmed live code reference

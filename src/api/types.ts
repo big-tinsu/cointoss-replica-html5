@@ -105,7 +105,14 @@ export interface OutcomeResult {
   generatedOutcome: string;
   odds: number;
   amount: number;
-  cashoutAmount: number;
+  /** ⚠ A NUMBER on the aggregator wire but a STRING ("20.00") from the live
+   * partner backend, in both the bet response and history rows. Always read it
+   * through `Number()`; never call a number method on it directly. */
+  cashoutAmount: number | string;
+  /** Partner only — a duplicate of `generatedOutcome` the backend also sends. */
+  outcome?: string;
+  /** Partner only, unused: mirrors `cashoutAmount` for the main bet. */
+  mainBetCashout?: number | string;
 }
 
 export function isWon(outcome: Pick<OutcomeResult, "won">): boolean {
@@ -150,7 +157,24 @@ export interface BetRecordData {
   result: "won" | "lost" | "pending" | "draw" | string;
   amountPlaced: number;
   cashoutAmount: number;
-  selectedEventType: OutcomeResult[] | null;
+  /** Partner rows carry this (partner spec §4); aggregator rows do not. */
+  potentialWinning?: number;
+  /**
+   * ⚠ POLYMORPHIC on the wire (spec §5.6): usually `OutcomeResult[]`, but some
+   * rows come back as an array of bare strings or numbers. Typed as `unknown[]`
+   * on purpose so every consumer has to go through `outcomeEvents()` below
+   * instead of trusting the happy shape and reading `undefined` off a string.
+   */
+  selectedEventType: unknown[] | null;
+}
+
+/** The spec §5.6 guard: anything that is not a non-empty array of *objects*
+ * carries no usable event data and is treated as absent, rather than rendered
+ * as a row whose outcome silently reads `undefined`. */
+export function outcomeEvents(raw: BetRecordData["selectedEventType"]): OutcomeResult[] | null {
+  return Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "object" && raw[0] !== null
+    ? (raw as OutcomeResult[])
+    : null;
 }
 
 export interface Pagination {
@@ -257,4 +281,130 @@ export interface SwinttData {
 export interface SelectedEvent {
   type: string;
   value: string;
+}
+
+// ---------------------------------------------------------------------------
+// PARTNER contract (docs/PARTNER_API_INTEGRATION.md §8).
+//
+// The partner backend serves the same game to a different class of client, so
+// the wire shapes overlap but do not match: no `sessionId`, no `openRound`, no
+// `aggregatorCurrency`, one call per round instead of four, and a `leaderboard`
+// that the aggregator contract has no equivalent for. Shared pieces
+// (`Outcome`, `PlayerSelection`, `OutcomeResult`, `ComponentData`,
+// `Pagination`, `BetRecordData`) are reused from above rather than duplicated.
+// ---------------------------------------------------------------------------
+
+/** `ServerResponse.meta` on the partner token call (§2.1). `patnerUrl` carries
+ * the same backend misspelling as the aggregator contract; `playerId` is new
+ * (it keys bet history, where the aggregator uses `sessionId`), and there is no
+ * `data` field because partner has no `AggregatorData` blob. */
+export interface PartnerResponseMeta {
+  patnerUrl?: string;
+  playerId?: string;
+  customization?: string;
+  partnerResponse?: string;
+  /** Present in the DTO, unused by this client — the game is strictly
+   * request/response, with no socket anywhere (§11). */
+  gameWebsocket?: string;
+}
+
+export interface PartnerServerResponse {
+  status: boolean;
+  data: string;
+  message: string;
+  meta?: PartnerResponseMeta;
+}
+
+/** `decrypt(data)` of `th-authenticate-player` — a NESTED envelope (§2.2).
+ *
+ * `status`/`message` are documented but the live backend omits them, sending
+ * `{data}` alone — hence optional. Treating their absence as a failure is
+ * exactly the bug that rejected every successful partner boot. */
+export interface PartnerAuthEnvelope {
+  status?: boolean;
+  message?: string;
+  data: PartnerLoginData;
+}
+
+/** Note what is absent versus the aggregator's `LoginData`: no `sessionId`
+ * (partner has no round context to rotate), no `openRound` (no abandoned-round
+ * recovery path), and no `aggregatorCurrency` — partner sends no stake limits
+ * at all, so the client derives its own (§11). */
+export interface PartnerLoginData {
+  username: string;
+  currency: string;
+  /** §2.2 documents a decimal string, but the live backend sends a NUMBER.
+   * Accept both and always parse with `Number()`. */
+  balance: string | number;
+  odds: OddsWire;
+}
+
+/** `decrypt(data)` of `th-place-bet` (§3). One response resolves the round AND
+ * carries the authoritative new balance — there is no balance endpoint and no
+ * settle call to follow (§11). */
+export interface PartnerBetData {
+  currency: string;
+  /** Documented as a string; sent as a NUMBER by the live backend. */
+  balance: string | number;
+  /** Singular object here, not the aggregator's one-element `event` array. */
+  event: OutcomeResult;
+  /** §3 documents this on every bet response, but the live backend OMITS the
+   * field entirely when there is no rank change — hence optional. */
+  leaderboard?: LeaderboardEdge | null;
+}
+
+/** `PlaceBetPayload` (§3) — encrypted into the single `data` form field. Note
+ * it carries `currency`/`username`, which the aggregator payload does not, and
+ * omits the aggregator's vestigial `difficulties: "none"`. */
+export interface PartnerPlaceBetPayload {
+  currency: string;
+  username: string;
+  selection: PlayerSelection;
+  gameType: string;
+  amountPlaced: number;
+}
+
+/** §5. Also embedded in a place-bet response when the round changes the
+ * player's standing. */
+export interface LeaderboardEdge {
+  id: string;
+  userId: string;
+  username: string;
+  projectName: string;
+  projectId: string;
+  isActive: boolean;
+  reward: string;
+  rank: number;
+  gameType: string;
+  type: string;
+  meta: {
+    date: string;
+    reward: string;
+    criteria: {
+      reward: string;
+      occurence: string;
+      description: string;
+      minimumBets: string;
+      minimumWager: string;
+    };
+    userAction: { bets: string; wager: string };
+  };
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+export interface LeaderboardResponse {
+  status: boolean;
+  message: string;
+  data: {
+    edges: LeaderboardEdge[];
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor: string;
+      endCursor: string;
+    };
+    totalCount: number;
+  };
 }

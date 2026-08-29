@@ -20,6 +20,8 @@
  * diverges from this scene's own literal `CanvasScaler` config).
  */
 
+import { assetUrl } from "../assetUrl";
+
 export const DESIGN_W = 1080;
 export const DESIGN_H = 2340;
 
@@ -69,14 +71,13 @@ export const CANVAS_MOBILE = {
   mode: "MatchWidthOrHeight",
 } as const;
 
-const BASE = import.meta.env.BASE_URL;
 /** The 13 real sliced comp frames actually referenced by the scene,
  * `Assets/Interface Design - Coin & Toss - Asset/...- mobile - N.png`,
  * copied to `public/assets/ui/*.png` under descriptive names. */
-export const ui = (name: string) => `${BASE}assets/ui/${name}.png`;
+export const ui = (name: string) => assetUrl(`assets/ui/${name}.png`);
 /** Everything else (`Assets/Images and Sprites/**`, `Assets/Keypad/**`,
  * `Assets/Prefabs/Orientation/**`). */
-export const img = (name: string) => `${BASE}assets/img/${name}.png`;
+export const img = (name: string) => assetUrl(`assets/img/${name}.png`);
 
 /* ------------------------------------------------------------------ colors */
 /** Literal `Image.m_Color` / `TMP.fontColor` values. Names describe the

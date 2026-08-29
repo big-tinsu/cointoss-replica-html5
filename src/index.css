@@ -12,13 +12,10 @@
  * rest, matching Liberation Sans (Arial) metrics closely enough at these
  * sizes without self-hosting a second font just for two labels.
  */
-@font-face {
-  font-family: "Bestime";
-  src: url("/fonts/Bestime.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* `Bestime`'s @font-face is registered at runtime by `src/ui/fonts.ts`: a CSS
+ * `url()` is a literal — it cannot go through `assetUrl`, so it would not
+ * follow VITE_BASE_PATH. `tools/wrap-asset-urls.mjs` fails the build if one
+ * comes back. */
 
 *,
 *::before,

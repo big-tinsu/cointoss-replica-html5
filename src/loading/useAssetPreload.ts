@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
+import { assetUrl } from "../assetUrl";
 import { ASSET_MANIFEST } from "./assetManifest";
-
-const BASE = import.meta.env.BASE_URL;
 
 /** Parallel requests. Enough to saturate a phone connection without
  * starving the game's own token/authenticate calls, which race this. */
@@ -53,7 +52,7 @@ function startPreload() {
   const worker = async () => {
     while (next < total) {
       const url = ASSET_MANIFEST[next++];
-      await preloadOne(BASE + url);
+      await preloadOne(assetUrl(url));
       loaded += 1;
       for (const listener of listeners) listener(loaded);
     }

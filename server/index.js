@@ -29,6 +29,11 @@ import {
   paginateHistory,
   mintToken,
   isValidToken,
+  isCurrentSession,
+  partnerLoginData,
+  partnerCustomization,
+  partnerPlaceBet,
+  partnerLeaderboardEdge,
   GAME_TYPE,
 } from "./state.js";
 import { LANGUAGES, translateMany } from "./languages.js";
@@ -39,6 +44,19 @@ const app = express();
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+/**
+ * Spec §1/§9.1 — every round call must carry the `sessionId` from the LATEST
+ * authenticate, because that id rotates on each one. Rejecting a stale id here
+ * is what turns "the single most common integration bug" into a dev-time
+ * failure instead of a production one. `Invalid Operation. Kindly reload the
+ * game.` is the real backend's own wording for this class (spec §8).
+ */
+function requireCurrentSession(req, res, sessionId) {
+  if (isCurrentSession(sessionId)) return true;
+  res.status(400).json(errorEnvelope("Invalid Operation. Kindly reload the game."));
+  return false;
+}
 
 /**
  * The origin this mock tells the client to send every *subsequent* call to —
@@ -126,6 +144,8 @@ app.post("/api/v2/bet-placed/agg-place-bet", async (req, res) => {
     return;
   }
 
+  if (!requireCurrentSession(req, res, payload.sessionId)) return;
+
   // `payload.difficulties` ("none") is the hardcoded, unused-elsewhere literal
   // flagged in spec §1 step 8 — accepted and ignored, matching the real
   // client's own "no corresponding UI/field" finding.
@@ -152,7 +172,8 @@ app.post("/api/v2/bet-placed/agg-actions", async (req, res) => {
     res.status(400).json(errorEnvelope("Unexpected server response caused an exception."));
     return;
   }
-  void payload; // selection was already captured at place-bet time; resent here for parity only
+  if (!requireCurrentSession(req, res, payload.sessionId)) return;
+  // selection was already captured at place-bet time; resent here for parity only
 
   try {
     const event = resolveRound(process.env.MOCK_FORCE_OUTCOME);
@@ -169,10 +190,127 @@ app.post("/api/v2/bet-placed/agg-actions", async (req, res) => {
 // load; NOT a live cashout button (see README). No-ops successfully when
 // there's nothing to settle.
 // ---------------------------------------------------------------------------
-app.post("/api/v2/bet-placed/agg-manual-actions", (req, res) => {
+app.post("/api/v2/bet-placed/agg-manual-actions", async (req, res) => {
   if (!requireAuth(req, res)) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(await decrypt(req.body.data));
+  } catch {
+    res.status(400).json(errorEnvelope("Unexpected server response caused an exception."));
+    return;
+  }
+  if (!requireCurrentSession(req, res, payload.sessionId)) return;
+
   manualSettle();
   res.json({ status: true, data: "", message: "Settled." });
+});
+
+// ===========================================================================
+// PARTNER contract (docs/PARTNER_API_INTEGRATION.md).
+//
+// The same game served to the other class of betting client. Mounted
+// alongside the aggregator routes rather than in a second server so
+// `npm run dev` covers both, and so both share one wallet and one history —
+// switch `VITE_INTEGRATION` and the balance carries over.
+//
+// The two contracts never collide: partner paths are `.../fe/token` and
+// `bet-placed/th-*`, aggregator paths are `.../agg/token` and
+// `bet-placed/agg-*`.
+// ===========================================================================
+
+// Token — partner §2.1. A GET credentialled by a bare `clientId` HEADER, not
+// `Authorization`. The real backend resolves the operator from it; the mock
+// only needs it to be present. `meta.playerId` is new versus the aggregator
+// token response (it keys bet history), and there is no `meta.data` because
+// partner has no AggregatorData blob.
+app.get("/api/v2/partner/fe/token", async (req, res) => {
+  const clientId = req.get("clientId") ?? req.get("clientid") ?? "";
+  if (!clientId) {
+    res.status(400).json(errorEnvelope("Invalid Partner"));
+    return;
+  }
+  res.json({
+    status: true,
+    data: mintToken(),
+    message: "Token issued.",
+    meta: {
+      patnerUrl: await encrypt(requestOrigin(req)),
+      playerId: await encrypt(getPlayer().userId),
+      customization: await encrypt(JSON.stringify(partnerCustomization())),
+      partnerResponse: "",
+    },
+  });
+});
+
+// Authenticate — partner §2.2. One form field (`gameType`), and the response
+// `data` decrypts to a NESTED {status, message, data} envelope, unlike the
+// aggregator's flat one.
+app.post("/api/v2/bet-placed/th-authenticate-player", async (req, res) => {
+  if (!requireAuth(req, res)) return;
+  // ONLY `data` — no `status`, no `message`. The spec documents all three,
+  // but the live backend sends just this, and a client that treats the missing
+  // `status` as falsy rejects every successful boot. Reproduced deliberately so
+  // that bug cannot come back unnoticed in dev.
+  const encrypted = await encrypt(JSON.stringify({ data: partnerLoginData() }));
+  res.json({ status: true, data: encrypted, message: "Player authenticated successfully" });
+});
+
+// Place bet — partner §3. THE WHOLE ROUND IN ONE CALL: it validates, runs the
+// RNG, moves the wallet and returns the authoritative new balance with the
+// outcome. There is no resolve step and no settle step to follow.
+//
+// A validation failure answers 200 with `status: false` — a business
+// rejection, which §3 requires the client to surface without spinning the
+// coin. That is deliberately NOT a non-2xx: the two are different branches in
+// the client's state machine.
+app.post("/api/v2/bet-placed/th-place-bet", async (req, res) => {
+  if (!requireAuth(req, res)) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(await decrypt(req.body.data));
+  } catch {
+    res.status(400).json(errorEnvelope("Unexpected server response caused an exception."));
+    return;
+  }
+
+  let result;
+  try {
+    result = partnerPlaceBet(
+      { selection: payload.selection, amountPlaced: payload.amountPlaced },
+      process.env.MOCK_FORCE_OUTCOME,
+    );
+  } catch (err) {
+    // 403, matching the live partner backend — the spec describes a 2xx
+    // business rejection, but stake-limit failures really answer 403. Both
+    // land on the same "toast it, do not spin" branch in the client.
+    res.status(403).json(errorEnvelope(err.message || "Error debitting your wallet"));
+    return;
+  }
+
+  const encrypted = await encrypt(JSON.stringify(result));
+  res.json({ status: true, data: encrypted, message: "Bet placed successfully" });
+});
+
+// Leaderboard — partner §5. Plain JSON, relay-style edges. Returned
+// deliberately unsorted so the client's own rank sort is exercised.
+app.get("/api/v2/leaderboard", (req, res) => {
+  if (!requireAuth(req, res)) return;
+  const edges = [
+    partnerLeaderboardEdge(3, "devPlayerThree"),
+    partnerLeaderboardEdge(1),
+    partnerLeaderboardEdge(2, "devPlayerTwo"),
+  ];
+  res.json({
+    status: true,
+    message: "",
+    data: {
+      edges,
+      pageInfo: { hasNextPage: false, hasPreviousPage: false, startCursor: "", endCursor: "" },
+      totalCount: edges.length,
+    },
+  });
 });
 
 // ---------------------------------------------------------------------------

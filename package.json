@@ -13,8 +13,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "assets:manifest": "node tools/gen-asset-manifest.mjs",
-    "predev": "npm run assets:manifest",
-    "prebuild": "npm run assets:manifest"
+    "assets:wrap": "node tools/wrap-asset-urls.mjs",
+    "assets:check": "node tools/wrap-asset-urls.mjs --check",
+    "predev": "npm run assets:manifest && npm run assets:wrap",
+    "prebuild": "npm run assets:manifest && npm run assets:wrap"
   },
   "dependencies": {
     "cors": "^2.8.5",

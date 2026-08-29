@@ -31,104 +31,36 @@
  */
 import * as api from "../api/client";
 import { isWon } from "../api/types";
-import type { ComponentData, OutcomeResult, PlayerSelection } from "../api/types";
+import type { OutcomeResult, PlayerSelection } from "../api/types";
 import { getLaunchParams, hrefWithoutReplayKeys } from "../api/urlParams";
 import { loadStake, saveStake } from "./persistence";
 import { sanitizeStakeInput } from "./format";
 import { generateQuickBetValues } from "./quickBet";
 
-const DEFAULT_MIN_FALLBACK = 1;
-/**
- * Round pacing. The Unity builds hold every beat for two seconds or more;
- * on a phone that reads as lag rather than suspense, so the port keeps the
- * same beats and shortens them — roughly a second of animation, then the
- * outcome, with its toast on screen for a second.
- */
-/**
- * `GameManager.WaitForOutcome` — `WaitForSeconds(5)`, flat, no callback (spec §1
- * step 10). Shortened from the source's 5s: that was the single slowest beat in
- * the family.
- *
- * EXPORTED because the coin's CSS animations must run for exactly this long —
- * `CoinStage` feeds it to `--flip-ms`. The stylesheet used to hardcode `5s`
- * against this 1000ms wait, so the result toast appeared about four seconds
- * before the coin finished spinning.
- */
-export const FLIP_DURATION_MS = 1000;
-const NOTIFICATION_MS = 1000; // GameManager.Notify (~2s per toast, spec end of §1), halved — see note
-const QUICK_BET_BUTTON_COUNT = 5;
+import {
+  DEFAULT_MIN_FALLBACK,
+  FLIP_DURATION_MS,
+  NOTIFICATION_MS,
+  QUICK_BET_BUTTON_COUNT,
+  clamp,
+  initialSnapshot,
+  round2,
+  type GameEngineLike,
+  type GameSnapshot,
+  type Notification,
+  type RoundResult,
+} from "./sessionContract";
 
-export type Phase = "booting" | "fatal-error" | "ready";
-
-export interface Notification {
-  /** A translation KEY — `NotificationToast` renders `t(message)`. */
-  message: string;
-  isError: boolean;
-  /**
-   * Appended verbatim after the translated `message`, for data that must NOT go
-   * through the translation table (amounts, currency codes). Lets the win toast
-   * read "You just won USD 19.20" with only the phrase localized.
-   */
-  suffix?: string;
-}
-
-export interface RoundResult {
-  playerChoice: PlayerSelection;
-  desiredOutcome: string;
-  won: boolean;
-  cashoutAmount: number;
-}
-
-export interface GameSnapshot {
-  phase: Phase;
-  fatalError: string | null;
-
-  // Session / player (GameData, LoginData — spec §4)
-  username: string;
-  currency: string;
-  balance: number;
-  minimum: number;
-  maximum: number;
-  oddsOne: number;
-  customization: ComponentData[];
-
-  // Quick-bet chips (VirtualCashManager.GenerateValuesInRange, spec §3)
-  quickBetValues: number[];
-
-  // Stake (StakeInput/VirtualCashManager, spec §2/§3)
-  stakeText: string;
-  stake: number;
-
-  // Round lifecycle (GameManager, spec §1)
-  lastChoice: PlayerSelection | null;
-  hasMadeABet: boolean;
-  busy: boolean; // isAttemptingServerCallBack
-  isFlipping: boolean; // isSpinning
-  flipOutcome: string | null; // desiredOutcome, drives the coin's CSS animation state
-  /**
-   * The face the coin came to rest on in the round that just finished.
-   *
-   * Separate from `flipOutcome` (which only lives for the duration of the flip
-   * animation) because the coin must KEEP showing the previous result after the
-   * round auto-resets back to the bet controls, instead of snapping back to
-   * `idle`. Cleared when the next bet is placed, so a new round starts from the
-   * spin rather than from the stale face.
-   */
-  settledOutcome: string | null;
-
-  insufficientFundsVisible: boolean;
-  cashoutRetryVisible: boolean;
-  cashoutRetryMessage: string;
-
-  notification: Notification | null;
-
-  // Bet history (CoinTossBetHistoryManager, spec §3 — single implementation)
-  betHistory: import("../api/types").BetRecordData[];
-  betHistoryPagination: import("../api/types").Pagination | null;
-  betHistoryLoading: boolean;
-
-  helpVisible: boolean;
-}
+// Re-exported so existing importers (`CoinStage`, `NotificationToast`) keep
+// their current import paths; the definitions now live in `sessionContract.ts`,
+// which both integrations share.
+export {
+  FLIP_DURATION_MS,
+  type GameSnapshot,
+  type Notification,
+  type Phase,
+  type RoundResult,
+} from "./sessionContract";
 
 type Listener = () => void;
 
@@ -138,48 +70,21 @@ interface Session {
   mainUrlBase: string;
   aggregatorDataCipher: string; // resent verbatim on every authenticate call
   sessionId: string;
+  /**
+   * `aggregator.mode === "demo"` (spec §5.1). Play-money sessions settle
+   * LOCALLY — see `applyLogin`: the server's balance is ignored after a round
+   * and the win is credited client-side instead.
+   */
+  isDemo: boolean;
 }
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
-
-export class GameEngine {
+export class GameEngine implements GameEngineLike {
   private listeners = new Set<Listener>();
   private session: Session | null = null;
-  private snapshot: GameSnapshot;
+  private snapshot: GameSnapshot = initialSnapshot();
   private notificationQueue: Notification[] = [];
   private isNotifying = false;
   private booted = false;
-
-  constructor() {
-    this.snapshot = {
-      phase: "booting",
-      fatalError: null,
-      username: "",
-      currency: "",
-      balance: 0,
-      minimum: 0,
-      maximum: 0,
-      oddsOne: 1,
-      customization: [],
-      quickBetValues: [],
-      stakeText: "",
-      stake: 0,
-      lastChoice: null,
-      hasMadeABet: false,
-      busy: false,
-      isFlipping: false,
-      flipOutcome: null,
-      settledOutcome: null,
-      insufficientFundsVisible: false,
-      cashoutRetryVisible: false,
-      cashoutRetryMessage: "",
-      notification: null,
-      betHistory: [],
-      betHistoryPagination: null,
-      betHistoryLoading: false,
-      helpVisible: false,
-    };
-  }
 
   // ── store plumbing ────────────────────────────────────────────────────
   subscribe = (listener: Listener): (() => void) => {
@@ -246,6 +151,9 @@ export class GameEngine {
       mainUrlBase: boot.mainUrlBase,
       aggregatorDataCipher: boot.aggregatorDataCipher,
       sessionId: "",
+      // Compared case-insensitively: the Unity source is inconsistent about
+      // casing on every `aggregator.*` branch (spec §7).
+      isDemo: boot.aggregator.mode?.toLowerCase() === "demo",
     };
     this.set({ customization: boot.customization });
 
@@ -273,7 +181,9 @@ export class GameEngine {
         // Best-effort reconciliation, same as the source (SendResults'
         // failure path just retries via ReAuthenticate below regardless).
       }
-      await this.reAuthenticate(/* cashOut */ true);
+      // Spec §5.2: the abandoned round's own `cashoutAmount` is what settles,
+      // and it is the demo credit for a play-money session.
+      await this.reAuthenticate(/* cashOut */ true, loginData.openRound.cashoutAmount);
     }
 
     this.set({ phase: "ready" });
@@ -281,10 +191,23 @@ export class GameEngine {
   }
 
   /** `RunAuthenticate` (boot, full field set) vs. `GameManager.ReAuthenticate`
-   * (post-round, balance+session only) — spec §1 steps 4 & 12/§4. */
-  private applyLogin(loginData: Awaited<ReturnType<typeof api.authenticate>>, full: boolean): void {
+   * (post-round, balance+session only) — spec §1 steps 4 & 12/§4.
+   *
+   * @param demoCredit gross return of the round being settled. Only read for a
+   *                   demo session, where spec §6 says the displayed balance is
+   *                   advanced locally (`balance += cashoutAmount`) and the
+   *                   server's figure is ignored — a play-money wallet the
+   *                   backend does not actually move. Real-money sessions take
+   *                   the server balance as authoritative, always.
+   */
+  private applyLogin(
+    loginData: Awaited<ReturnType<typeof api.authenticate>>,
+    full: boolean,
+    demoCredit = 0,
+  ): void {
     if (this.session) this.session.sessionId = loginData.sessionId;
     if (full) {
+      // Boot is authoritative even in demo: it is what seeds the wallet.
       this.set({
         username: loginData.username,
         currency: loginData.currency,
@@ -293,6 +216,8 @@ export class GameEngine {
         maximum: loginData.aggregatorCurrency.maximum,
         oddsOne: loginData.odds["1"] ?? 1,
       });
+    } else if (this.session?.isDemo) {
+      this.set({ balance: round2(this.snapshot.balance + demoCredit) });
     } else {
       this.set({ balance: Number(loginData.balance) });
     }
@@ -467,8 +392,8 @@ export class GameEngine {
     this.set({ isFlipping: false, settledOutcome: event.generatedOutcome });
 
     const won = isWon(event);
-    this.pendingResult = { playerChoice: choice, desiredOutcome: event.generatedOutcome, won, cashoutAmount: event.cashoutAmount };
-    await this.reAuthenticate(/* cashOut */ false);
+    this.pendingResult = { playerChoice: choice, desiredOutcome: event.generatedOutcome, won, cashoutAmount: Number(event.cashoutAmount) || 0 };
+    await this.reAuthenticate(/* cashOut */ false, Number(event.cashoutAmount) || 0);
   }
 
   private pendingResult: RoundResult | null = null;
@@ -476,8 +401,11 @@ export class GameEngine {
   /** `GameManager.ReAuthenticate` (`GameManager.cs:427-568`, spec §1 step
    * 12) — re-authenticates (balance/session resync only, see `applyLogin`),
    * then reveals the win/loss panel unless this is the cashout-reconciliation
-   * pass (`cashOut === true`), which suppresses the reveal. */
-  private async reAuthenticate(cashOut: boolean): Promise<void> {
+   * pass (`cashOut === true`), which suppresses the reveal.
+   *
+   * @param demoCredit the round's gross return, forwarded to `applyLogin` for
+   *                   the spec §6 demo-mode balance rule. */
+  private async reAuthenticate(cashOut: boolean, demoCredit = 0): Promise<void> {
     if (!this.session) return;
     this.set({ busy: true });
     let loginData: Awaited<ReturnType<typeof api.authenticate>>;
@@ -488,7 +416,7 @@ export class GameEngine {
       this.set({ busy: false, cashoutRetryVisible: true, cashoutRetryMessage: this.messageOf(err) });
       return;
     }
-    this.applyLogin(loginData, /* full */ false);
+    this.applyLogin(loginData, /* full */ false, demoCredit);
     this.set({ busy: false, cashoutRetryVisible: false });
 
     if (!cashOut && this.pendingResult) {
@@ -520,7 +448,7 @@ export class GameEngine {
    * `cashoutRetryPanel`'s Retry button, shown when a post-round
    * re-authenticate call fails to reach the server. */
   retryReAuthenticate(): void {
-    void this.reAuthenticate(false);
+    void this.reAuthenticate(false, this.pendingResult?.cashoutAmount ?? 0);
   }
 
   /**
@@ -546,9 +474,13 @@ export class GameEngine {
   }
 
   // ── bet history (CoinTossBetHistoryManager, spec §3 — single
-  // implementation, limit 10, keyed off sessionId) ───────────────────────
+  // implementation, limit 20, keyed off sessionId) ───────────────────────
   async refreshBetHistory(page: number): Promise<void> {
     if (!this.session) return;
+    // Spec §5.6 — one history request in flight at a time. Without this a fast
+    // double-tap on the pager races two responses and the later-arriving page
+    // wins regardless of which one was asked for last.
+    if (this.snapshot.betHistoryLoading) return;
     this.set({ betHistoryLoading: true });
     try {
       const res = await api.fetchBetHistory(this.session.mainUrlBase, this.session.token, this.session.sessionId, page);
@@ -559,9 +491,4 @@ export class GameEngine {
       this.set({ betHistoryLoading: false });
     }
   }
-}
-
-function clamp(value: number, min: number, max: number): number {
-  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= 0) return value;
-  return Math.min(Math.max(value, min), max);
 }

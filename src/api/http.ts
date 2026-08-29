@@ -43,11 +43,24 @@ export async function getJson<T>(url: string, headers?: Record<string, string>):
 /**
  * POST a JSON body.
  *
- * Every POST in this client sends `application/json`, not form encoding:
- * the payloads are a flat set of string fields (`url`, `data`, `token`), and
- * a form body forced each one through URL escaping — which matters because
- * the values are base64/hex ciphertext, where `+` and `=` are significant and
- * round-trip badly through form decoding on some backends.
+ * NOTE, deliberate divergence: `docs/AGGREGATOR_API_INTEGRATION.md` (§1, §5,
+ * §10) specifies `application/x-www-form-urlencoded` for every POST but
+ * replay, mirroring the Unity client's `WWWForm`. This port sends JSON
+ * instead, as a maintainer-level decision — not an oversight.
+ *
+ * What is known: the mock accepts both (`express.json()` and
+ * `express.urlencoded()` are both registered in `server/index.js`, and
+ * `api/mock.js` normalises either shape), and probing the live token endpoint
+ * found JSON and form encoding producing the identical response, while
+ * `multipart/form-data` produced a different one — see README, "Previewing a
+ * deploy with `?mock=1`".
+ *
+ * If a real aggregator call ever returns as though its fields were missing,
+ * this is the first thing to switch back: pass `new URLSearchParams(fields)`
+ * as the body and drop the explicit `Content-Type`, letting the browser set
+ * it. The payloads are safe under form escaping either way — every encrypted
+ * field is uppercase hex from `crypto.ts` (`[0-9A-F]`, no `+`/`=`) and the JWT
+ * travels in the `Authorization` header, not the body.
  */
 export async function postJson<T>(
   url: string,

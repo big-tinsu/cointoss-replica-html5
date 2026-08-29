@@ -28,25 +28,40 @@ export const GAME_TYPE = "cointoss";
  */
 const MOCK_BASE = "/api/mock";
 
+/** Path of the token-exchange endpoint, appended to whichever host wins below.
+ * `VITE_AGGREGATOR_TOKEN_HOST` carries the host *and* API base only — never
+ * this suffix — so one variable covers every environment. */
+const TOKEN_PATH = "/partner/agg/token";
+
+/** Aggregator API base used when `VITE_AGGREGATOR_TOKEN_HOST` is unset. */
+const DEFAULT_TOKEN_HOST = "https://game.shacksevo.co/user/api/v2";
+
 /** `Environment` enum (`GameLoader.cs:10,22,146-148`) — a real production
- * build picks one of two hardcoded hosts; this port makes it overridable via
- * env var and defaults to the same-origin mock in dev (see devBootstrap.ts).
+ * build picks one of two hardcoded hosts; this port makes it configurable via
+ * `VITE_AGGREGATOR_TOKEN_HOST`.
  *
- * `?mock=1` additionally routes a *built* deploy at this origin's bundled mock,
- * for previewing without aggregator credentials — see `isMockBackend()`.
- * Ordered after the `DEV` branch on purpose: `npm run dev` already proxies the
- * un-prefixed `/api/**` paths straight to `server/index.js`, so applying the
- * `/api/mock` prefix there would miss the Express routes (nothing strips it —
- * that only happens in the serverless wrapper) and 404. The flag is therefore a
- * no-op in dev, where it is also unnecessary. */
+ * Precedence, highest first:
+ *   1. `?mock=1` — the bundled preview mock, so a preview never depends on a
+ *      configured host or on aggregator credentials.
+ *   2. `VITE_AGGREGATOR_TOKEN_HOST`, when set.
+ *   3. `DEFAULT_TOKEN_HOST`.
+ *
+ * ⚠ There is no `import.meta.env.DEV` branch, so `npm run dev` does NOT target
+ * the local mock: with the variable unset it posts to `DEFAULT_TOKEN_HOST`,
+ * and `?mock=1` resolves to `/api/mock/**`, which the dev proxy forwards to
+ * `server/index.js` unstripped (only the serverless wrapper strips that
+ * prefix) — a 404. To play against the mock in dev, set
+ * `VITE_AGGREGATOR_TOKEN_HOST` to this origin's `/api/v2`, which
+ * `vite.config.ts` proxies to `server/index.js`. `devBootstrap.ts` still
+ * describes the older same-origin-by-default behaviour. */
 function resolveTokenUrl(): string {
-  const override = import.meta.env.VITE_TOKEN_URL as string | undefined;
-  if (override) return override;
-  if (import.meta.env.DEV) return `${window.location.origin}/api/v2/partner/agg/token`;
   if (isMockBackend()) {
-    return `${window.location.origin}${MOCK_BASE}/api/v2/partner/agg/token`;
+    return `${window.location.origin}${MOCK_BASE}/api/v2${TOKEN_PATH}`;
   }
-  return "https://portal.shacksevo.co/api/v2/partner/agg/token";
+  const host = import.meta.env.VITE_AGGREGATOR_TOKEN_HOST;
+  if (host) return `${host.replace(/\/+$/, "")}${TOKEN_PATH}`;
+
+  return `${DEFAULT_TOKEN_HOST}${TOKEN_PATH}`;
 }
 
 export interface BootResult {
@@ -63,16 +78,24 @@ export interface BootResult {
  * Penaldo/Keno's GET + `clientId` header (spec §4). */
 export async function requestToken(pageHref: string): Promise<BootResult> {
   const encryptedHref = await encrypt(pageHref);
-  const res = await postJson<ServerResponse>(resolveTokenUrl(), { url: encryptedHref });
+  const res = await postJson<ServerResponse>(resolveTokenUrl(), {
+    url: encryptedHref,
+  });
 
   if (!res.data) {
-    throw new Error("Unable to retrieve token. Reload the game or report issue.");
+    throw new Error(
+      "Unable to retrieve token. Reload the game or report issue.",
+    );
   }
   if (!res.meta?.data) {
-    throw new Error("Unable to retrieve data. Reload the game or report issue.");
+    throw new Error(
+      "Unable to retrieve data. Reload the game or report issue.",
+    );
   }
   if (!res.meta?.patnerUrl) {
-    throw new Error("Unable to retrieve baseUrl. Reload the game or report issue.");
+    throw new Error(
+      "Unable to retrieve baseUrl. Reload the game or report issue.",
+    );
   }
 
   const aggregator = JSON.parse(await decrypt(res.meta.data)) as AggregatorData;
@@ -104,7 +127,11 @@ export async function authenticate(
 ): Promise<LoginData> {
   const res = await postJson<ServerResponse>(
     `${baseUrl}bet-placed/agg-authenticate`,
-    { data: aggregatorDataCipher, gameType: GAME_TYPE, initialRound: String(initialRound) },
+    {
+      data: aggregatorDataCipher,
+      gameType: GAME_TYPE,
+      initialRound: String(initialRound),
+    },
     { Authorization: `Bearer ${token}` },
   );
   const decrypted = await decrypt(res.data);
@@ -159,7 +186,11 @@ export async function getResults(
 /** `GameManager.SendResults` (`GameManager.cs:361-424`, spec §1 step 15) —
  * settles an abandoned open round found on load. NOT a live cashout button
  * (see README) — only ever called once, automatically, from boot. */
-export async function manualActions(baseUrl: string, token: string, sessionId: string): Promise<void> {
+export async function manualActions(
+  baseUrl: string,
+  token: string,
+  sessionId: string,
+): Promise<void> {
   const encrypted = await encrypt(JSON.stringify({ sessionId }));
   await postJson<ServerResponse>(
     `${baseUrl}bet-placed/agg-manual-actions`,
@@ -176,7 +207,7 @@ export async function fetchBetHistory(
   token: string,
   sessionId: string,
   page = 1,
-  limit = 10,
+  limit = 20, // spec §5.6/§10 — the contract's history page size
 ): Promise<BetHistoryResponse> {
   return getJson<BetHistoryResponse>(
     `${mainUrlBase}/api/v1/bet-placed/partner/user/${sessionId}/${GAME_TYPE}?aggregator=true&limit=${limit}&page=${page}`,

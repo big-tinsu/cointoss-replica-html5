@@ -1,5 +1,6 @@
 import { useLanguage } from "../i18n/LanguageContext";
-import type { BetRecordData, Pagination } from "../api/types";
+import { outcomeEvents } from "../api/types";
+import type { BetRecordData, OutcomeResult, Pagination } from "../api/types";
 import { img } from "../ui/design";
 import { UnifiedBetHistory } from "../ui/unified";
 import type { UBetRow } from "../ui/unified";
@@ -35,10 +36,10 @@ function formatDate(iso?: string): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-function outcomeOf(record: BetRecordData): string | null {
-  const events = record.selectedEventType;
-  if (!events || events.length === 0) return null;
-  return events[0].generatedOutcome;
+/** The row's resolved event, or `null` when the backend sent the string/number
+ * form of `selectedEventType` (spec §5.6) — see `outcomeEvents`. */
+function eventOf(record: BetRecordData): OutcomeResult | null {
+  return outcomeEvents(record.selectedEventType)?.[0] ?? null;
 }
 
 export function BetHistoryPanel({
@@ -60,30 +61,36 @@ export function BetHistoryPanel({
 }) {
   const { t } = useLanguage();
 
-  
   // Face icon size, in real px like the rest of the shared row.
   const coinSize = 26;
 
   const rows: UBetRow[] = history.map((record, i) => {
-    const outcome = outcomeOf(record);
-    const sprite = outcome ? outcomeSpriteKey(outcome) : "side";
+    const event = eventOf(record);
+    const outcome = event?.generatedOutcome ?? null;
     return {
       key: `${i}`,
       status: statusOf(record.result),
       statusLabel: t(record.result),
-      date: formatDate(record.selectedEventType?.[0]?.betTime),
-      stake: `${t("Stake")}: ${currency} ${record.amountPlaced.toFixed(2)}`,
-      payout: `${t("Cashout")}: ${currency} ${record.cashoutAmount.toFixed(2)}`,
+      date: formatDate(event?.betTime),
+      stake: `${t("Stake")}: ${currency} ${Number(record.amountPlaced).toFixed(2)}`,
+      payout: `${t("Cashout")}: ${currency} ${Number(record.cashoutAmount).toFixed(2)}`,
       detail: outcome ? t(outcome) : undefined,
-      outcome: (
+      // No coin face when the row carries no readable event: showing the
+      // `side` sprite there would claim an edge landing that never happened.
+      outcome: outcome ? (
         <img
-          src={img(sprite)}
+          src={img(outcomeSpriteKey(outcome))}
           alt=""
           width={coinSize}
           height={coinSize}
-          style={{ width: coinSize, height: coinSize, objectFit: "contain", display: "block" }}
+          style={{
+            width: coinSize,
+            height: coinSize,
+            objectFit: "contain",
+            display: "block",
+          }}
         />
-      ),
+      ) : undefined,
     };
   });
 

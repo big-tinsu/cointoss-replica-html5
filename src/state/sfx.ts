@@ -3,8 +3,9 @@
 // taps don't cut each other off (matching Unity's `PlayOneShot` semantics).
 // This is presentation-layer polish, not game logic: it plays on UI taps only
 // and never gates any bet/round outcome.
-const BASE = import.meta.env.BASE_URL;
-const CLICK_SRC = `${BASE}assets/sound/button-click.wav`;
+import { assetUrl } from "../assetUrl";
+
+const CLICK_SRC = assetUrl("assets/sound/button-click.wav");
 
 let muted = false;
 export function setMuted(value: boolean): void {

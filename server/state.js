@@ -42,7 +42,9 @@ function nowIso() {
 
 const player = {
   userId: "dev-player-1",
+  // Rotated by `loginDataFor()` on every authenticate — see `rotateSession`.
   sessionId: "dev-session-1",
+  sessionCounter: 1,
   username: "TesterShacks",
   currency: "USD",
   balance: 1000,
@@ -103,6 +105,11 @@ export function aggregatorDataPayload() {
   };
 }
 
+/** Whether a round call carries the sessionId from the latest authenticate. */
+export function isCurrentSession(sessionId) {
+  return sessionId === player.sessionId;
+}
+
 /**
  * `LoginData` (`Data Structures/LoginData.cs`) — spec §4. Only the very
  * first boot authenticate call in this mock can carry a seeded `openRound`
@@ -116,6 +123,14 @@ export function aggregatorDataPayload() {
 export function loginDataFor() {
   const openRound = player.openRound;
   player.openRound = null; // once reported, the next call goes back to null
+  // Spec §1: the sessionId identifies the ROUND CONTEXT and rotates on every
+  // authenticate call — "sending a stale sessionId is the single most common
+  // integration bug". Minting BEFORE the payload is built is what makes the
+  // returned id the one that is valid from here until the next authenticate,
+  // which is what `isCurrentSession()` then enforces on every round call. A
+  // client that closes over the previous id now fails here in dev rather than
+  // only against the live aggregator.
+  player.sessionId = `dev-session-${++player.sessionCounter}`;
   return {
     username: player.username,
     sessionId: player.sessionId,
@@ -252,3 +267,87 @@ export function paginateHistory(page = 1, limit = 10) {
 }
 
 export { GAME_TYPE };
+
+// ---------------------------------------------------------------------------
+// PARTNER contract (docs/PARTNER_API_INTEGRATION.md).
+//
+// The same wallet, reached through the other of this game's two backends. Only
+// the wire shapes differ, so these reuse the round logic above rather than
+// forking it — the mock stays a single source of truth for balance and history.
+// ---------------------------------------------------------------------------
+
+/** `th-authenticate-player` (partner §2.2). Note what is NOT here versus
+ * `loginDataFor()`: no `sessionId` (partner has no round context), no
+ * `openRound`, and no `aggregatorCurrency` — partner sends no stake limits at
+ * all, which is exactly why the client derives its own. */
+export function partnerLoginData() {
+  return {
+    username: player.username,
+    currency: player.currency,
+    // A NUMBER, matching the live partner backend — the spec documents a
+    // string, but reproducing the real wire is what makes dev catch real bugs.
+    balance: player.balance,
+    odds: { 1: player.oddsOne },
+  };
+}
+
+/** The operator theming payload. Carries the stake limits, which the partner
+ * authenticate response does NOT — the live backend puts them here, and the
+ * client reads them from here to avoid submitting a stake it will reject. */
+export function partnerCustomization() {
+  return [
+    { id: "min", name: "minimum-stake-amount", value: String(player.minimum), type: "general" },
+    { id: "max", name: "maximum-stake-amount", value: String(player.maximum), type: "general" },
+  ];
+}
+
+/**
+ * `th-place-bet` (partner §3) — the whole round in ONE call.
+ *
+ * The aggregator contract splits this into escrow (`placeBet`) then resolve
+ * (`resolveRound`); partner has no escrow step, so both run back to back here.
+ * Reusing them keeps one RNG, one wallet and one history for both
+ * integrations, so a bet placed either way shows up identically.
+ */
+export function partnerPlaceBet({ selection, amountPlaced }, forceOutcome) {
+  placeBet({ selection, amountPlaced });
+  const event = resolveRound(forceOutcome);
+  return {
+    currency: player.currency,
+    balance: player.balance, // number, as the live backend sends it
+    // `cashoutAmount` goes out as a STRING here, matching the live partner
+    // wire (the aggregator sends a number), so the client's Number() coercion
+    // is exercised in dev rather than only in production.
+    event: { ...event, cashoutAmount: Number(event.cashoutAmount).toFixed(2) },
+    // §5 — a real backend embeds a rank object when the round moves the
+    // player's standing. Seeded on wins so the one-time toast is exercisable.
+    leaderboard: event.won === "true" ? partnerLeaderboardEdge(1) : null,
+  };
+}
+
+/** §5 — one board row. The mock is single-player, so the board is this player
+ * plus a couple of fixtures, which is enough to prove sorting and shape. */
+export function partnerLeaderboardEdge(rank, username = player.username) {
+  const now = nowIso();
+  return {
+    id: `lb-${rank}`,
+    userId: player.userId,
+    username,
+    projectName: "dev", projectId: "dev-project",
+    isActive: true,
+    reward: String(500 / rank),
+    rank,
+    gameType: GAME_TYPE,
+    type: "daily",
+    meta: {
+      date: now,
+      reward: String(500 / rank),
+      criteria: {
+        reward: String(500 / rank), occurence: "daily",
+        description: "Dev leaderboard", minimumBets: "10", minimumWager: "1000",
+      },
+      userAction: { bets: "12", wager: "1500" },
+    },
+    createdAt: now, updatedAt: now, deletedAt: null,
+  };
+}
