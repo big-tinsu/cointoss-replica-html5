@@ -13,6 +13,7 @@
 export { UnifiedMenu } from "./UnifiedMenu";
 export { UnifiedBetHistory } from "./UnifiedBetHistory";
 export type { UBetRow } from "./UnifiedBetHistory";
+export { UnifiedAbout } from "./UnifiedAbout";
 export { UnifiedHowToPlay } from "./UnifiedHowToPlay";
 export type { UHelpBlock } from "./UnifiedHowToPlay";
 export { U, U_FONT } from "./tokens";
