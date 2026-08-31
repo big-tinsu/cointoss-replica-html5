@@ -72,17 +72,32 @@ export function Stage({ spec, children }: { spec: CanvasSpec; children: ReactNod
       host.style.setProperty("--canvas-h", `${h / scale}px`);
     };
 
+    // The on-screen keyboard shrinks `window.innerHeight` on mobile and fires
+    // `resize`. Rescaling to that reduced height shrinks the entire game while
+    // the player is typing a stake, which is not what the resize means: the
+    // window did not change, the keyboard just covered part of it. So while a
+    // field has focus the scale is held, and re-applied once focus leaves and
+    // the viewport is whole again.
+    const isTyping = () => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el) return false;
+      return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable;
+    };
+
     const schedule = () => {
+      if (isTyping()) return;
       if (frame) return;
       frame = requestAnimationFrame(apply);
     };
 
     apply();
     window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("focusout", schedule, { passive: true });
     window.addEventListener("orientationchange", schedule, { passive: true });
     return () => {
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
+    window.removeEventListener("focusout", schedule);
       window.removeEventListener("orientationchange", schedule);
     };
   }, [spec]);
