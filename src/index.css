@@ -334,21 +334,29 @@ input:focus {
   position: absolute;
   inset: 8%;
   object-fit: contain;
+  /* Rock about the contact point, not the middle of the sprite.
+   *
+   * The settle rotates a very tall, very narrow element. Pivoting at its
+   * centre threw the top ~80px sideways at the opening -14deg, so the coin
+   * read as off-centre for most of the animation even though it starts and
+   * ends dead centre in a centred viewport. A coin stood on its edge pivots
+   * where it touches, which keeps the base planted and centred throughout. */
+  transform-origin: 50% 100%;
   animation: coin-side-settle var(--flip-ms, 1000ms) ease-out forwards;
   filter: drop-shadow(0 0 40px rgba(246, 194, 20, 0.35));
 }
 @keyframes coin-side-settle {
   0% {
-    transform: rotate(-14deg) scaleX(0.85);
+    transform: rotate(-7deg) scaleX(0.85);
   }
   35% {
-    transform: rotate(9deg) scaleX(1);
+    transform: rotate(4.5deg) scaleX(1);
   }
   65% {
-    transform: rotate(-5deg) scaleX(0.94);
+    transform: rotate(-2.5deg) scaleX(0.94);
   }
   85% {
-    transform: rotate(2deg) scaleX(1);
+    transform: rotate(1deg) scaleX(1);
   }
   100% {
     transform: rotate(0deg) scaleX(1);

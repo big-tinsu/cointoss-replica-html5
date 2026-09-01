@@ -521,8 +521,12 @@ export class PartnerGameEngine implements GameEngineLike {
     const won = isWon(event);
     const cashoutAmount = Number(event.cashoutAmount) || 0;
 
+    // A `side` landing is the one outcome the coin art cannot explain on its
+    // own: there is no third face, so the player sees the coin edge-on and has
+    // no idea why the round was lost. Name it in the message. Head and tail
+    // are self-evident from the face that is showing, so they read as before.
     this.notify(
-      won ? "You just won" : "Sorry. You lost",
+      won ? "You just won" : event.generatedOutcome === "side" ? "Middle. You lost" : "Sorry. You lost",
       !won,
       won ? `${this.snapshot.currency} ${cashoutAmount.toFixed(2)}` : undefined,
     );

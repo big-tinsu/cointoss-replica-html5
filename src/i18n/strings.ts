@@ -24,6 +24,7 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   "Error debitting your wallet": "Error debitting your wallet",
   "Nice. You won": "Nice. You won",
   "Sorry. You lost": "Sorry. You lost",
+  "Middle. You lost": "Middle. You lost",
   "You've no ongoing round. Kindly reload!": "You've no ongoing round. Kindly reload!",
   "Bet already closed. Kindly reload the game": "Bet already closed. Kindly reload the game",
   "Invalid Operation. Kindly reload the game.": "Invalid Operation. Kindly reload the game.",
