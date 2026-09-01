@@ -6,19 +6,33 @@ import { ASSET_MANIFEST } from "./assetManifest";
  * starving the game's own token/authenticate calls, which race this. */
 const CONCURRENCY = 12;
 /**
- * The boot screen is a courtesy, not a gate. It yields to the game after this
- * long no matter how much art is left; the queue keeps running behind the
- * first frame, so a slow connection costs a few late-decoded sprites rather
- * than ten seconds of staring at a logo.
+ * Ceiling on how long the boot screen will hold for art.
+ *
+ * This was 2.5s and the screen was documented as "a courtesy, not a gate": it
+ * handed over regardless of what was still in flight, so on anything slower
+ * than a warm cache the game appeared and its sprites popped in over the top
+ * of it.
+ *
+ * It cannot simply be removed either. A full set is a few MB, which is ~19s on
+ * a 1.6 Mbps connection — gating on all of it just trades pop-in for half a
+ * minute of staring at a logo. So: images are fetched FIRST and are the only
+ * thing the gate waits on (see `imageTotal`), audio and fonts stream in behind
+ * the first frame where nothing visual depends on them, and this cap bounds
+ * the worst case.
  */
-const MAX_WAIT_MS = 2_500;
+const MAX_WAIT_MS = 12_000;
 /** On a warm cache the whole queue resolves in one frame; hold the logo
  * long enough that it reads as a screen rather than a flash. */
 const MIN_SHOW_MS = 400;
 
 const IMAGE_RE = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
 
-const total = ASSET_MANIFEST.length;
+/* Images first: they are the only assets whose absence is *visible* as
+ * pop-in, so they are what the boot gate waits on. Audio and fonts keep
+ * downloading behind the first frame. */
+const QUEUE = [...ASSET_MANIFEST].sort((a, b) => Number(IMAGE_RE.test(b)) - Number(IMAGE_RE.test(a)));
+const imageTotal = QUEUE.filter((u) => IMAGE_RE.test(u)).length;
+const total = QUEUE.length;
 let loaded = 0;
 let started = false;
 const listeners = new Set<(n: number) => void>();
@@ -51,7 +65,7 @@ function startPreload() {
   let next = 0;
   const worker = async () => {
     while (next < total) {
-      const url = ASSET_MANIFEST[next++];
+      const url = QUEUE[next++];
       await preloadOne(assetUrl(url));
       loaded += 1;
       for (const listener of listeners) listener(loaded);
@@ -88,8 +102,8 @@ export function useAssetPreload(appReady: boolean): { progress: number; done: bo
     };
   }, []);
 
-  const assetsDone = total === 0 || count >= total || expired;
-  const fraction = assetsDone ? 1 : count / total;
+  const assetsDone = imageTotal === 0 || count >= imageTotal || expired;
+  const fraction = assetsDone ? 1 : count / imageTotal;
   const progress = Math.round((fraction * 0.85 + (appReady ? 0.15 : 0)) * 100);
 
   return { progress, done: assetsDone && appReady && minElapsed };
