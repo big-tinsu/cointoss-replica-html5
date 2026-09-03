@@ -34,7 +34,7 @@ import { isWon } from "../api/types";
 import type { OutcomeResult, PlayerSelection } from "../api/types";
 import { getLaunchParams, hrefWithoutReplayKeys } from "../api/urlParams";
 import { loadStake, saveStake } from "./persistence";
-import { sanitizeStakeInput } from "./format";
+import { formatMoney, sanitizeStakeInput } from "./format";
 import { generateQuickBetValues } from "./quickBet";
 
 import {
@@ -434,7 +434,7 @@ export class GameEngine implements GameEngineLike {
       this.notify(
         result.won ? "You just won" : "Sorry. You lost",
         !result.won,
-        result.won ? `${this.snapshot.currency} ${result.cashoutAmount.toFixed(2)}` : undefined,
+        result.won ? `${this.snapshot.currency} ${formatMoney(result.cashoutAmount)}` : undefined,
       );
       // Auto-reset back to the bet controls (spec §1 step 14's Rebet/New Round
       // step is removed by request) while KEEPING the coin on the face it

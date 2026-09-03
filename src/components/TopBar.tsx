@@ -1,4 +1,5 @@
 import { useLanguage } from "../i18n/LanguageContext";
+import { formatMoney } from "../state/format";
 import { playClick } from "../state/sfx";
 import { C, ui } from "../ui/design";
 import { Spr, TintSpr, Tmp } from "../ui/Sprite";
@@ -25,7 +26,7 @@ export function TopBar({
   const { t } = useLanguage();
   // `Currency` (the "USD" code) is its own sibling TMP node right before
   // this one — the value here is the numeric balance only, not re-prefixed.
-  const valueText = balance.toFixed(2);
+  const valueText = formatMoney(balance);
   const valueRef = useAutoFit<HTMLSpanElement>(NAV.value.fs, 16, [valueText]);
 
   return (

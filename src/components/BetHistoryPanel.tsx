@@ -1,4 +1,5 @@
 import { useLanguage } from "../i18n/LanguageContext";
+import { formatMoney } from "../state/format";
 import { outcomeEvents } from "../api/types";
 import type { BetRecordData, OutcomeResult, Pagination } from "../api/types";
 import { img } from "../ui/design";
@@ -72,8 +73,8 @@ export function BetHistoryPanel({
       status: statusOf(record.result),
       statusLabel: t(record.result),
       date: formatDate(event?.betTime),
-      stake: `${t("Stake")}: ${currency} ${Number(record.amountPlaced).toFixed(2)}`,
-      payout: `${t("Cashout")}: ${currency} ${Number(record.cashoutAmount).toFixed(2)}`,
+      stake: `${t("Stake")}: ${currency} ${formatMoney(record.amountPlaced)}`,
+      payout: `${t("Cashout")}: ${currency} ${formatMoney(record.cashoutAmount)}`,
       detail: outcome ? t(outcome) : undefined,
       // No coin face when the row carries no readable event: showing the
       // `side` sprite there would claim an edge landing that never happened.

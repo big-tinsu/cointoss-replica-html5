@@ -1,4 +1,5 @@
 import { useLanguage } from "../i18n/LanguageContext";
+import { formatMoney } from "../state/format";
 import { playClick } from "../state/sfx";
 import type { PlayerSelection } from "../api/types";
 import { C, ui } from "../ui/design";
@@ -158,10 +159,10 @@ export function BetPanel({
        * only; a long currency code shrinks the glyphs rather than wrapping
        * into the row below. */}
       <Tmp className="nowrap" rect={{ x: STAKE_FIELD.minimum.x, y: STAKE_FIELD.minimum.y, w: STAKE_FIELD.minimum.w, h: STAKE_FIELD.minimum.h }} fontSize={STAKE_FIELD.minimum.fs} align="left">
-        {t("min")}: {currency} {minimum.toFixed(2)}
+        {t("min")}: {currency} {formatMoney(minimum)}
       </Tmp>
       <Tmp className="nowrap" rect={{ x: STAKE_FIELD.maximum.x, y: STAKE_FIELD.maximum.y, w: STAKE_FIELD.maximum.w, h: STAKE_FIELD.maximum.h }} fontSize={STAKE_FIELD.maximum.fs} align="right">
-        {t("max")}: {currency} {maximum.toFixed(2)}
+        {t("max")}: {currency} {formatMoney(maximum)}
       </Tmp>
 
       {/* `QuickBet` — two 4-chip rows, frame mobile-14.

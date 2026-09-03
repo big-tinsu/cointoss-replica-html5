@@ -32,7 +32,7 @@ import { isWon } from "../api/types";
 import type { LeaderboardEdge, OutcomeResult, Pagination, PlayerSelection } from "../api/types";
 import { getLaunchParams } from "../api/urlParams";
 import { loadStake, saveStake } from "./persistence";
-import { sanitizeStakeInput } from "./format";
+import { formatMoney, sanitizeStakeInput } from "./format";
 import { generateQuickBetValues } from "./quickBet";
 import {
   DEFAULT_MIN_FALLBACK,
@@ -528,7 +528,7 @@ export class PartnerGameEngine implements GameEngineLike {
     this.notify(
       won ? "You just won" : event.generatedOutcome === "side" ? "Middle. You lost" : "Sorry. You lost",
       !won,
-      won ? `${this.snapshot.currency} ${cashoutAmount.toFixed(2)}` : undefined,
+      won ? `${this.snapshot.currency} ${formatMoney(cashoutAmount)}` : undefined,
     );
 
     // §5 — a rank change rides along with the bet response. Surfaced through
